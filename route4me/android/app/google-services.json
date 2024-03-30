@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "315854700999",
+    "firebase_url": "https://route4me-8aae4-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "route4me-8aae4",
+    "storage_bucket": "route4me-8aae4.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:315854700999:android:a3172a97c2b128990f19e2",
+        "android_client_info": {
+          "package_name": "com.example.route4me"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "315854700999-34kkrcf9rgvoau6gu33ofbudebfjv7ed.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.route4me",
+            "certificate_hash": "8c496e95bd418e75afdebb24fc1ff87d328623c0"
+          }
+        },
+        {
+          "client_id": "315854700999-6m61qpfchpakmj8bltti4gt4iqkn6k0c.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCsKzXQHefWMPcBUibiEx-WAuODIjMzhDw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "315854700999-6m61qpfchpakmj8bltti4gt4iqkn6k0c.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "315854700999-2lehoj0f916jqas8i9g490keg6mm5uu4.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.route4me"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
