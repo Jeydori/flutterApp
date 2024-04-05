@@ -1,4 +1,4 @@
-import 'dart:async';
+//import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -15,7 +15,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final user = FirebaseAuth.instance.currentUser!;
-  final Completer<GoogleMapController> _controllerGoogleMap = Completer();
+  //final Completer<GoogleMapController> _controllerGoogleMap = Completer();
 
   LatLng? pickLocation;
   Location location = Location();
@@ -32,7 +32,7 @@ class _HomePageState extends State<HomePage> {
       tilt: 59.440717697143555,
       zoom: 19.151926040649414);*/
 
-    final GlobalKey<ScaffoldState> _scaffoldState = GlobalKey<ScaffoldState>();
+    //final GlobalKey<ScaffoldState> _scaffoldState = GlobalKey<ScaffoldState>();
 
     double searchLocationContainerHeight = 220;
     double waitingResponsefromDriverContainerHeight = 0;

@@ -47,7 +47,7 @@ dependencies:
   location: ^6.0.1
   smooth_star_rating_nsafe: ^1.0.0+1
   animated_text_kit: ^4.2.2
-
+  
 
 
 dev_dependencies:
