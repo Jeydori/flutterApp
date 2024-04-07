@@ -9,6 +9,10 @@
     }
   ],
   "defaultOptions" : {
+    "locationScenario" : {
+      "identifier" : "New York, NY, USA",
+      "referenceType" : "built-in"
+    },
     "testTimeoutsEnabled" : true
   },
   "testTargets" : [
