@@ -1,10 +1,13 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:geocoder2/geocoder2.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:location/location.dart' hide LocationAccuracy;
+import 'package:location/location.dart'hide LocationAccuracy;
+import 'package:route4me/assistants/assistant_methods.dart';
 import 'package:route4me/components/drawer.dart';
+import 'package:route4me/global/map_key.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -63,14 +66,46 @@ class _HomePageState extends State<HomePage> {
       Position cPosition = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
       userCurrentPosition = cPosition;
 
-      LatLng LatLngPosition = LatLng(userCurrentPosition!.latitude, userCurrentPosition!.longitude);
-      CameraPosition cameraPosition = CameraPosition(target: LatLngPosition, zoom: 15);
+      LatLng latLngPosition = LatLng(userCurrentPosition!.latitude, userCurrentPosition!.longitude);
+      CameraPosition cameraPosition = CameraPosition(target: latLngPosition, zoom: 15);
 
       newGoogleMapController!.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
 
-      //String
+      String humanReadableAddress = await assistantMethods.searchAddressForGeographicCoordinates(userCurrentPosition!, context);
+      print('This is our address =' + humanReadableAddress);
+
     }
 
+    getAddressFromLatLng() async {
+      try {
+        GeoData data = await Geocoder2.getDataFromCoordinates(
+          latitude: pickLocation!.latitude, 
+          longitude: pickLocation!.longitude, 
+          googleMapApiKey: mapKey,
+          );
+          setState(() {
+            address = data.address;
+
+          });
+      } catch (e) {
+        print(e);
+      }
+    }
+
+ checkIfLocationPermissionAllowed() async{
+  locationPermission = await Geolocator.requestPermission();
+
+  if(locationPermission == LocationPermission.denied){
+    locationPermission = await Geolocator.requestPermission();
+  } 
+ }
+    @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    checkIfLocationPermissionAllowed();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -87,7 +122,7 @@ class _HomePageState extends State<HomePage> {
           children: [
             GoogleMap(
               mapType: MapType.normal,
-              myLocationButtonEnabled: true,
+              myLocationEnabled: true,
               zoomGesturesEnabled: true,
               zoomControlsEnabled: true,
               initialCameraPosition: _kGooglePlex,
@@ -116,6 +151,27 @@ class _HomePageState extends State<HomePage> {
                 //getAddressFromLatLng();
               },
             ),
+            Align(
+              alignment: Alignment.center,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 35.0),
+                child: Icon(Icons.location_on, color: Colors.orange[600],size: 50,)),
+            ), Positioned(
+              top: 40,
+              right: 20,
+              left: 20,
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.orange),
+                  color: Colors.white,
+                ),
+                padding: EdgeInsets.all(20),
+                child: Text(
+                  address?? "Set your Pick Up Location",
+                  overflow: TextOverflow.visible, softWrap: true,
+                ),
+              ),
+              )
           ],
         ),
       ),

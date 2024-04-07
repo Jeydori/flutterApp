@@ -9,6 +9,10 @@
     }
   ],
   "defaultOptions" : {
+    "locationScenario" : {
+      "identifier" : "Tokyo, Japan",
+      "referenceType" : "built-in"
+    },
     "testTimeoutsEnabled" : true
   },
   "testTargets" : [
