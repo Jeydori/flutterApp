@@ -1,9 +1,9 @@
-//import 'dart:async';
+import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:location/location.dart';
+import 'package:location/location.dart' hide LocationAccuracy;
 import 'package:route4me/components/drawer.dart';
 
 class HomePage extends StatefulWidget {
@@ -15,7 +15,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final user = FirebaseAuth.instance.currentUser!;
-  //final Completer<GoogleMapController> _controllerGoogleMap = Completer();
+  final Completer<GoogleMapController> _controllerGoogleMap = Completer();
+  GoogleMapController? newGoogleMapController;
 
   LatLng? pickLocation;
   Location location = Location();
@@ -58,6 +59,18 @@ class _HomePageState extends State<HomePage> {
     bool activeNearbyDriverKeysLoaded = false;
     BitmapDescriptor? activeNearbyIcon;
 
+    locateUserPosition() async {
+      Position cPosition = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      userCurrentPosition = cPosition;
+
+      LatLng LatLngPosition = LatLng(userCurrentPosition!.latitude, userCurrentPosition!.longitude);
+      CameraPosition cameraPosition = CameraPosition(target: LatLngPosition, zoom: 15);
+
+      newGoogleMapController!.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
+
+      //String
+    }
+
 
   @override
   Widget build(BuildContext context) {
@@ -70,11 +83,39 @@ class _HomePageState extends State<HomePage> {
         title: const Text("Home"),
       ),
       drawer: const MyDrawer(),
-      body: const Stack(
+      body: Stack(
           children: [
             GoogleMap(
+              mapType: MapType.normal,
+              myLocationButtonEnabled: true,
+              zoomGesturesEnabled: true,
+              zoomControlsEnabled: true,
               initialCameraPosition: _kGooglePlex,
-              ),
+              polylines: polylineSet,
+              markers: markerSet,
+              circles: circleSet,
+              onMapCreated: (GoogleMapController controller) {
+                _controllerGoogleMap.complete(controller);
+                newGoogleMapController = controller;
+
+                setState(() {
+                  
+                });
+
+                locateUserPosition();
+
+              },
+              onCameraMove: (CameraPosition? position){
+                if(pickLocation != position!.target){
+                  setState(() {
+                    pickLocation = position.target;
+                  });
+                }
+              },
+              onCameraIdle: (){
+                //getAddressFromLatLng();
+              },
+            ),
           ],
         ),
       ),
