@@ -21,7 +21,7 @@ class _HomePageState extends State<HomePage> {
   final Completer<GoogleMapController> _controllerGoogleMap = Completer();
   GoogleMapController? newGoogleMapController;
 
-  LatLng? pickLocation;
+  LatLng? destination;
   Location location = Location();
   String? address;
 
@@ -79,8 +79,8 @@ class _HomePageState extends State<HomePage> {
     getAddressFromLatLng() async {
       try {
         GeoData data = await Geocoder2.getDataFromCoordinates(
-          latitude: pickLocation!.latitude, 
-          longitude: pickLocation!.longitude, 
+          latitude: destination!.latitude, 
+          longitude: destination!.longitude, 
           googleMapApiKey: mapKey,
           );
           setState(() {
@@ -103,7 +103,6 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-
     checkIfLocationPermissionAllowed();
   }
 
@@ -141,9 +140,9 @@ class _HomePageState extends State<HomePage> {
 
               },
               onCameraMove: (CameraPosition? position){
-                if(pickLocation != position!.target){
+                if(destination != position!.target){
                   setState(() {
-                    pickLocation = position.target;
+                    destination = position.target;
                   });
                 }
               },
@@ -167,7 +166,7 @@ class _HomePageState extends State<HomePage> {
                 ),
                 padding: EdgeInsets.all(20),
                 child: Text(
-                  address?? "Set your Pick Up Location",
+                  address?? "Set your Destination",
                   overflow: TextOverflow.visible, softWrap: true,
                 ),
               ),
