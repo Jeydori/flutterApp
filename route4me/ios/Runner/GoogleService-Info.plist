@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>315854700999-2lehoj0f916jqas8i9g490keg6mm5uu4.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.315854700999-2lehoj0f916jqas8i9g490keg6mm5uu4</string>
+	<key>API_KEY</key>
+	<string>AIzaSyCjJWZUacvU1vIz_hYkPG8o2s-1oWdNyOE</string>
+	<key>GCM_SENDER_ID</key>
+	<string>315854700999</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.example.route4me</string>
+	<key>PROJECT_ID</key>
+	<string>route4me-8aae4</string>
+	<key>STORAGE_BUCKET</key>
+	<string>route4me-8aae4.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:315854700999:ios:fb345ad69106a2770f19e2</string>
+	<key>DATABASE_URL</key>
+	<string>https://route4me-8aae4-default-rtdb.asia-southeast1.firebasedatabase.app</string>
+</dict>
+</plist>

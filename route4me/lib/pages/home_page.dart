@@ -36,7 +36,7 @@ class _HomePageState extends State<HomePage> {
       tilt: 59.440717697143555,
       zoom: 19.151926040649414);*/
 
-    //final GlobalKey<ScaffoldState> _scaffoldState = GlobalKey<ScaffoldState>();
+    final GlobalKey<ScaffoldState> _scaffoldState = GlobalKey<ScaffoldState>();
 
     double searchLocationContainerHeight = 220;
     double waitingResponsefromDriverContainerHeight = 0;
@@ -57,7 +57,7 @@ class _HomePageState extends State<HomePage> {
     String? userName = "";
     String? userEmail = "";
 
-    bool openNavigatorDrawer = true;
+    bool openNavigationDrawer = true;
 
     bool activeNearbyDriverKeysLoaded = false;
     BitmapDescriptor? activeNearbyIcon;
@@ -72,7 +72,7 @@ class _HomePageState extends State<HomePage> {
       newGoogleMapController!.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
 
       String humanReadableAddress = await assistantMethods.searchAddressForGeographicCoordinates(userCurrentPosition!, context);
-      print('This is our address =' + humanReadableAddress);
+      print('This is our address =$humanReadableAddress');
 
     }
 
@@ -147,7 +147,7 @@ class _HomePageState extends State<HomePage> {
                 }
               },
               onCameraIdle: (){
-                //getAddressFromLatLng();
+                getAddressFromLatLng();
               },
             ),
             Align(
@@ -164,7 +164,7 @@ class _HomePageState extends State<HomePage> {
                   border: Border.all(color: Colors.orange),
                   color: Colors.white,
                 ),
-                padding: EdgeInsets.all(20),
+                padding: const EdgeInsets.all(20),
                 child: Text(
                   address?? "Set your Destination",
                   overflow: TextOverflow.visible, softWrap: true,
