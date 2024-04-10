@@ -72,7 +72,7 @@ class _HomePageState extends State<HomePage> {
       newGoogleMapController!.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
 
       String humanReadableAddress = await assistantMethods.searchAddressForGeographicCoordinates(userCurrentPosition!, context);
-      print('This is our address =$humanReadableAddress');
+      print('This is our address = ' + humanReadableAddress);
 
     }
 

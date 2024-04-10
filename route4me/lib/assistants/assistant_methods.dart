@@ -13,12 +13,12 @@ class assistantMethods{
     if(requestResponse != "Error Occured. Failed. No Response."){
       humanReadableAddress = requestResponse["results"][0]["formatted_address"];
 
-      Directions userPickUpAddress = Directions();
-      userPickUpAddress.locationLatitude = position.latitude;
-      userPickUpAddress.locationLongitude = position.longitude;
-      userPickUpAddress.locationName = humanReadableAddress;
+      Directions userDestinationAddress = Directions();
+      userDestinationAddress.locationLatitude = position.latitude;
+      userDestinationAddress.locationLongitude = position.longitude;
+      userDestinationAddress.locationName = humanReadableAddress;
       
-     //Provider.of<AppInfo>(context, listen: false).updatePickUpLocationAddress(userPickUpAddress);
+     //Provider.of<AppInfo>(context, listen: false).updateDestinationLocationAddress(userDestinationAddress);
     }
     return humanReadableAddress;
   }
