@@ -5,9 +5,13 @@ import 'package:geocoder2/geocoder2.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart'hide LocationAccuracy;
+import 'package:provider/provider.dart';
 import 'package:route4me/assistants/assistant_methods.dart';
 import 'package:route4me/components/drawer.dart';
+import 'package:route4me/global/directions.dart';
 import 'package:route4me/global/map_key.dart';
+
+import '../info handler/app_info.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -21,7 +25,7 @@ class _HomePageState extends State<HomePage> {
   final Completer<GoogleMapController> _controllerGoogleMap = Completer();
   GoogleMapController? newGoogleMapController;
 
-  LatLng? destination;
+  LatLng? pickLocation;
   Location location = Location();
   String? address;
 
@@ -74,17 +78,30 @@ class _HomePageState extends State<HomePage> {
       String humanReadableAddress = await assistantMethods.searchAddressForGeographicCoordinates(userCurrentPosition!, context);
       print('This is our address = ' + humanReadableAddress);
 
+     // userName = userModelCurrentInfo!.name!;
+     // userEmail = userModelCurrentInfo!.email!;
+
+     // initializeGeofireListener();
+
+      //assistantMethods.readTripsKeysForOnlineUser(context);
+
+
     }
 
     getAddressFromLatLng() async {
       try {
         GeoData data = await Geocoder2.getDataFromCoordinates(
-          latitude: destination!.latitude, 
-          longitude: destination!.longitude, 
+          latitude: pickLocation!.latitude, 
+          longitude: pickLocation!.longitude, 
           googleMapApiKey: mapKey,
           );
           setState(() {
-            address = data.address;
+            Directions userPickUpAddress = Directions();
+            userPickUpAddress.locationLatitude = pickLocation!.latitude;
+            userPickUpAddress.locationLongitude = pickLocation!.longitude;
+            userPickUpAddress.locationName = data.address;
+            //address = data.address;
+            Provider.of<appInfo>(context, listen: false).updatePickUpAddress(userPickUpAddress);
 
           });
       } catch (e) {
@@ -133,16 +150,14 @@ class _HomePageState extends State<HomePage> {
                 newGoogleMapController = controller;
 
                 setState(() {
-                  
+                
                 });
-
                 locateUserPosition();
-
               },
               onCameraMove: (CameraPosition? position){
-                if(destination != position!.target){
+                if(pickLocation != position!.target){
                   setState(() {
-                    destination = position.target;
+                    pickLocation = position.target;
                   });
                 }
               },
@@ -155,7 +170,8 @@ class _HomePageState extends State<HomePage> {
               child: Padding(
                 padding: const EdgeInsets.only(bottom: 35.0),
                 child: Icon(Icons.location_on, color: Colors.orange[600],size: 50,)),
-            ), Positioned(
+            ), 
+            Positioned(
               top: 40,
               right: 20,
               left: 20,
@@ -166,7 +182,9 @@ class _HomePageState extends State<HomePage> {
                 ),
                 padding: const EdgeInsets.all(20),
                 child: Text(
-                  address?? "Set your Destination",
+                  Provider.of<appInfo>(context).userPickUpLocation != null? 
+                  (Provider.of<appInfo>(context).userPickUpLocation!.locationName!).substring(0, 24) +
+                   "..." : "Not Getting Address",
                   overflow: TextOverflow.visible, softWrap: true,
                 ),
               ),

@@ -1,6 +1,8 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:route4me/firebase_options.dart';
+import 'package:route4me/info%20handler/app_info.dart';
 import 'package:route4me/pages/auth_page.dart';
 
 void main() async {
@@ -17,10 +19,13 @@ class route4me extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Route4Me',
-      home: AuthPage(),
+    return ChangeNotifierProvider(
+      create: (context) => appInfo(),
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Route4Me',
+        home: AuthPage(),
+      ),
     );
   }
 }

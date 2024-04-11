@@ -1,7 +1,9 @@
 import 'package:geolocator/geolocator.dart';
+import 'package:provider/provider.dart';
 import 'package:route4me/assistants/request_assistant.dart';
 import 'package:route4me/global/directions.dart';
 import 'package:route4me/global/map_key.dart';
+import 'package:route4me/info%20handler/app_info.dart';
 
 class assistantMethods{
   static Future<String> searchAddressForGeographicCoordinates(Position position, context) async{
@@ -13,12 +15,12 @@ class assistantMethods{
     if(requestResponse != "Error Occured. Failed. No Response."){
       humanReadableAddress = requestResponse["results"][0]["formatted_address"];
 
-      Directions userDestinationAddress = Directions();
-      userDestinationAddress.locationLatitude = position.latitude;
-      userDestinationAddress.locationLongitude = position.longitude;
-      userDestinationAddress.locationName = humanReadableAddress;
+      Directions userPickUpAddress = Directions();
+      userPickUpAddress.locationLatitude = position.latitude;
+      userPickUpAddress.locationLongitude = position.longitude;
+      userPickUpAddress.locationName = humanReadableAddress;
       
-     //Provider.of<AppInfo>(context, listen: false).updateDestinationLocationAddress(userDestinationAddress);
+     Provider.of<appInfo>(context, listen: false).updatePickUpAddress(userPickUpAddress);
     }
     return humanReadableAddress;
   }
