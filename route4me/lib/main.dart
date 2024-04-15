@@ -21,7 +21,7 @@ class route4me extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (context) => appInfo(),
-      child: MaterialApp(
+      child: const MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Route4Me',
         home: AuthPage(),

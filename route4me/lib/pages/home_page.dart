@@ -87,7 +87,7 @@ class _HomePageState extends State<HomePage> {
 
 
     }
-
+    
     getAddressFromLatLng() async {
       try {
         GeoData data = await Geocoder2.getDataFromCoordinates(
