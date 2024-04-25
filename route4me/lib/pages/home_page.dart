@@ -10,6 +10,7 @@ import 'package:route4me/components/drawer.dart';
 import 'package:route4me/global/directions.dart';
 import 'package:route4me/global/global.dart';
 import 'package:route4me/global/map_key.dart';
+import 'package:route4me/pages/search_page.dart';
 
 import '../info handler/app_info.dart';
 
@@ -248,7 +249,23 @@ class _HomePageState extends State<HomePage> {
                                   Padding(
                                     padding: EdgeInsets.all(5),
                                     child: GestureDetector(
-                                      onTap: () {},
+                                      onTap: () async {
+                                        //go to search page
+                                        var responseFromSearchPage =
+                                            await Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (c) =>
+                                                        SearchPage()));
+
+                                        if (responseFromSearchPage ==
+                                            "obtainedDestination") {
+                                          setState(() {
+                                            openNavigationDrawer = false;
+                                          });
+                                        }
+                                        //await drawPolylineFromOriginToDestination(Colors.blue);
+                                      },
                                       child: Row(
                                         children: [
                                           Icon(
@@ -272,13 +289,11 @@ class _HomePageState extends State<HomePage> {
                                                 Provider.of<appInfo>(context)
                                                             .userDestinationLocation !=
                                                         null
-                                                    ? (Provider.of<appInfo>(
-                                                                    context)
-                                                                .userDestinationLocation!
-                                                                .locationName!)
-                                                            .substring(0, 24) +
-                                                        "..."
-                                                    : "Not Getting Address",
+                                                    ? Provider.of<appInfo>(
+                                                            context)
+                                                        .userDestinationLocation!
+                                                        .locationName!
+                                                    : "...",
                                               )
                                             ],
                                           )

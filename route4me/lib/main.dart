@@ -25,7 +25,7 @@ class route4me extends StatelessWidget {
       child: const MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Route4Me',
-        home: SearchPage(),
+        home: SplashPage(),
       ),
     );
   }

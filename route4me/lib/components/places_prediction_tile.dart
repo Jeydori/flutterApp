@@ -1,4 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:route4me/assistants/request_assistant.dart';
+import 'package:route4me/components/progress_dialog.dart';
+import 'package:route4me/global/directions.dart';
+import 'package:route4me/global/global.dart';
+import 'package:route4me/global/map_key.dart';
+import 'package:route4me/info%20handler/app_info.dart';
 import 'package:route4me/models/predicted_places.dart';
 
 class PlacePredictionTile extends StatefulWidget {
@@ -10,14 +17,50 @@ class PlacePredictionTile extends StatefulWidget {
 }
 
 class _PlacePredictionTileState extends State<PlacePredictionTile> {
-  //getPlacePredictionDetails();
+  getPlacePredictionDetails(String? placeId, context) async {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) => ProgressDialog(
+              message: "Setting up Destination Location. Please wait...",
+            ));
+    String placeDirectionDetailUrl =
+        "https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&key=$mapKey";
+
+    var responseApi =
+        await RequestAssistant.receiveRequest(placeDirectionDetailUrl);
+
+    Navigator.pop(context);
+
+    if (responseApi == "Error Occured. Failed. No Response.") {
+      return;
+    }
+    if (responseApi["status"] == "OK") {
+      Directions directions = Directions();
+      directions.locationName = responseApi["result"]["name"];
+      directions.locationId = placeId;
+      directions.locationLatitude =
+          responseApi["result"]["geometry"]["location"]["lat"];
+      directions.locationLongitude =
+          responseApi["result"]["geometry"]["location"]["lng"];
+
+      Provider.of<appInfo>(context, listen: false)
+          .updateDestinationAddress(directions);
+
+      setState(() {
+        userDestinationAddress = directions.locationName!;
+      });
+      Navigator.pop(context, "obtainedDestination");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
-      onPressed: () {},
+      onPressed: () {
+        getPlacePredictionDetails(widget.predictedPlaces!.place_id, context);
+      },
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.white,
       ),
       child: Padding(
           padding: EdgeInsets.all(8),
@@ -25,7 +68,7 @@ class _PlacePredictionTileState extends State<PlacePredictionTile> {
             children: [
               Icon(
                 Icons.add_location,
-                color: Colors.black,
+                color: Colors.orange[600],
               ),
               SizedBox(
                 width: 10,

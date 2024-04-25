@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:route4me/assistants/request_assistant.dart';
+import 'package:route4me/components/places_prediction_tile.dart';
+import 'package:route4me/global/map_key.dart';
 import 'package:route4me/models/predicted_places.dart';
 
 class SearchPage extends StatefulWidget {
@@ -11,7 +14,29 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   List<PredictedPlaces> placesPredictedList = [];
 
-  findPlaceAutoCompleteSearch(String inputText) async {}
+  findPlaceAutoCompleteSearch(String inputText) async {
+    if (inputText.length > 1) {
+      String urlAutoCompleteSearch =
+          "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$inputText&key=$mapKey&components=country:PH";
+
+      var responseAutoCompleteSearch =
+          await RequestAssistant.receiveRequest(urlAutoCompleteSearch);
+
+      if (responseAutoCompleteSearch == "Error Occured. Failed. No Response.") {
+        return;
+      }
+      if (responseAutoCompleteSearch["status"] == "OK") {
+        var placePredictions = responseAutoCompleteSearch["predictions"];
+        var placePredictionList = (placePredictions as List)
+            .map((jsonData) => PredictedPlaces.fromJson(jsonData))
+            .toList();
+
+        setState(() {
+          placesPredictedList = placePredictionList;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,8 +58,8 @@ class _SearchPageState extends State<SearchPage> {
             ),
           ),
           title: Text(
-            "Search & Set dropoff location",
-            style: TextStyle(color: Colors.orange[600]),
+            "Search & Set Destination",
+            style: TextStyle(color: Colors.black),
           ),
           elevation: 0.0,
         ),
@@ -97,16 +122,25 @@ class _SearchPageState extends State<SearchPage> {
 
             //display places prediction
             (placesPredictedList.length > 0)
-            ? Expanded(
-              child: ListView.separated(
-                itemCount: placesPredictedList.length,
-                physics: ClampingScrollPhysics(),
-                itemBuilder: (context, index){
-                  return
-                }, 
-                separatorBuilder: separatorBuilder, 
-              ),
-            )
+                ? Expanded(
+                    child: ListView.separated(
+                      itemCount: placesPredictedList.length,
+                      physics: ClampingScrollPhysics(),
+                      itemBuilder: (context, index) {
+                        return PlacePredictionTile(
+                          predictedPlaces: placesPredictedList[index],
+                        );
+                      },
+                      separatorBuilder: (BuildContext context, int index) {
+                        return Divider(
+                          height: 0,
+                          color: Colors.black,
+                          thickness: 0,
+                        );
+                      },
+                    ),
+                  )
+                : Container(),
           ],
         ),
       ),
