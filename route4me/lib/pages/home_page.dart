@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:route4me/assistants/assistant_methods.dart';
 import 'package:route4me/components/drawer.dart';
 import 'package:route4me/global/directions.dart';
+import 'package:route4me/global/global.dart';
 import 'package:route4me/global/map_key.dart';
 
 import '../info handler/app_info.dart';
@@ -21,7 +22,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final user = FirebaseAuth.instance.currentUser!;
+  final user = firebaseAuth.currentUser!;
   final Completer<GoogleMapController> _controllerGoogleMap = Completer();
   GoogleMapController? newGoogleMapController;
 
@@ -83,8 +84,8 @@ class _HomePageState extends State<HomePage> {
         .searchAddressForGeographicCoordinates(userCurrentPosition!, context);
     print('This is our address = $humanReadableAddress');
 
-    // userName = userModelCurrentInfo!.name!;
-    // userEmail = userModelCurrentInfo!.email!;
+    userName = userModelCurrentInfo!.firstName!;
+    userEmail = userModelCurrentInfo!.email!;
 
     // initializeGeofireListener();
 

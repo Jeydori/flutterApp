@@ -5,6 +5,7 @@ import 'package:route4me/components/text_field.dart';
 import 'package:route4me/components/circle_tile.dart';
 import 'package:route4me/pages/forgot_page.dart';
 import 'package:route4me/services/auth_service.dart';
+import 'package:route4me/global/global.dart';
 
 class LoginPage extends StatefulWidget {
   final Function()? onTap;
@@ -33,7 +34,7 @@ class _LoginPageState extends State<LoginPage> {
     );
     //try signing in
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      await firebaseAuth.signInWithEmailAndPassword(
           email: emailController.text, password: passwordController.text);
 
       //pop the loading circle

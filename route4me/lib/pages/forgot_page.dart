@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:route4me/components/button.dart';
 import 'package:route4me/components/text_field.dart';
+import 'package:route4me/global/global.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});
@@ -31,8 +32,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     );
 
     try {
-      await FirebaseAuth.instance
-          .sendPasswordResetEmail(email: emailController.text.trim());
+      await firebaseAuth.sendPasswordResetEmail(
+          email: emailController.text.trim());
       Navigator.pop(context);
       // If no exception is thrown, show a success message
       showDialog(

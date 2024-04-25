@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:route4me/components/button.dart';
 import 'package:route4me/components/text_field.dart';
 import 'package:route4me/components/circle_tile.dart';
+import 'package:route4me/global/global.dart';
 import 'package:route4me/services/auth_service.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -50,7 +51,7 @@ class _RegisterPageState extends State<RegisterPage> {
       //check if password is confirmed
       if (passwordController.text == confirmPasswordController.text) {
         //create user
-        await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        await firebaseAuth.createUserWithEmailAndPassword(
             email: emailController.text, password: passwordController.text);
 
         //add user details
