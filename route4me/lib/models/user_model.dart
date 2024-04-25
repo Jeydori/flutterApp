@@ -1,21 +1,25 @@
-import 'package:firebase_database/firebase_database.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class UserModel {
-  String? firstName;
-  String? lastName;
-  int? age;
-  String? email;
+  String firstName;
+  String lastName;
+  int age;
+  String email;
 
   UserModel({
-    this.firstName,
-    this.lastName,
-    this.age,
-    this.email,
+    required this.firstName,
+    required this.lastName,
+    required this.age,
+    required this.email,
   });
-  UserModel.forSnapshot(DataSnapshot snap) {
-    firstName = (snap.value as dynamic)['First Name'];
-    lastName = (snap.value as dynamic)['Last Name'];
-    age = (snap.value as dynamic)['Age'];
-    email = (snap.value as dynamic)['Email'];
+
+  factory UserModel.fromSnapshot(DocumentSnapshot snapshot) {
+    Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
+    return UserModel(
+      firstName: data['First Name'] ?? '',
+      lastName: data['Last Name'] ?? '',
+      age: data['Age'] ?? 0,
+      email: data['Email'] ?? '',
+    );
   }
 }

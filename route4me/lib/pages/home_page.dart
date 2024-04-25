@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoder2/geocoder2.dart';
 import 'package:geolocator/geolocator.dart';
@@ -22,7 +21,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final user = firebaseAuth.currentUser!;
+  //final user = firebaseAuth.currentUser!;
   final Completer<GoogleMapController> _controllerGoogleMap = Completer();
   GoogleMapController? newGoogleMapController;
 
@@ -173,30 +172,151 @@ class _HomePageState extends State<HomePage> {
               child: Padding(
                   padding: const EdgeInsets.only(bottom: 35.0),
                   child: Icon(
-                    Icons.location_on,
+                    Icons.location_on_outlined,
                     color: Colors.orange[600],
                     size: 50,
                   )),
             ),
             Positioned(
-              top: 40,
-              right: 20,
-              left: 20,
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.orange),
-                  color: Colors.white,
-                ),
-                padding: const EdgeInsets.all(20),
-                child: Text(
-                  Provider.of<appInfo>(context).userPickUpLocation != null
-                      ? "${(Provider.of<appInfo>(context).userPickUpLocation!.locationName!).substring(0, 24)}..."
-                      : "Not Getting Address",
-                  overflow: TextOverflow.visible,
-                  softWrap: true,
-                ),
-              ),
-            )
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Padding(
+                  padding: EdgeInsets.fromLTRB(20, 50, 20, 20),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                          padding: EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.black38,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Column(
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.orange[600],
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Column(children: [
+                                  Padding(
+                                    padding: EdgeInsets.all(5),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.location_on_outlined,
+                                          color: Colors.black,
+                                        ),
+                                        SizedBox(width: 10),
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              "From",
+                                              style: TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            Text(
+                                              Provider.of<appInfo>(context)
+                                                          .userPickUpLocation !=
+                                                      null
+                                                  ? (Provider.of<appInfo>(
+                                                                  context)
+                                                              .userPickUpLocation!
+                                                              .locationName!)
+                                                          .substring(0, 24) +
+                                                      "..."
+                                                  : "Not Getting Address",
+                                            )
+                                          ],
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                  SizedBox(height: 5),
+                                  Divider(
+                                    height: 1,
+                                    thickness: 2,
+                                    color: Colors.black,
+                                  ),
+                                  SizedBox(height: 5),
+                                  Padding(
+                                    padding: EdgeInsets.all(5),
+                                    child: GestureDetector(
+                                      onTap: () {},
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.location_on_outlined,
+                                            color: Colors.black,
+                                          ),
+                                          SizedBox(width: 10),
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                "Where to",
+                                                style: TextStyle(
+                                                  color: Colors.black,
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              Text(
+                                                Provider.of<appInfo>(context)
+                                                            .userDestinationLocation !=
+                                                        null
+                                                    ? (Provider.of<appInfo>(
+                                                                    context)
+                                                                .userDestinationLocation!
+                                                                .locationName!)
+                                                            .substring(0, 24) +
+                                                        "..."
+                                                    : "Not Getting Address",
+                                              )
+                                            ],
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ]),
+                              )
+                            ],
+                          ))
+                    ],
+                  )),
+            ),
+
+            // Positioned(
+            //   top: 40,
+            //   right: 20,
+            //   left: 20,
+            //   child: Container(
+            //     decoration: BoxDecoration(
+            //       border: Border.all(color: Colors.orange),
+            //       color: Colors.white,
+            //     ),
+            //     padding: const EdgeInsets.all(20),
+            //     child: Text(
+            //       Provider.of<appInfo>(context).userPickUpLocation != null
+            //           ? (Provider.of<appInfo>(context)
+            //                       .userPickUpLocation!
+            //                       .locationName!)
+            //                   .substring(0, 24) +
+            //               "..."
+            //           : "Not Getting Address",
+            //       overflow: TextOverflow.visible,
+            //       softWrap: true,
+            //     ),
+            //   ),
+            // )
           ],
         ),
       ),

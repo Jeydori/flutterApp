@@ -31,7 +31,7 @@ class _SplashPageState extends State<SplashPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Image.asset(
-              'lib/images/route4me logo.jpg',
+              'lib/images/route4me splash icon.jpg',
               height: 260,
               width: 300,
             ),

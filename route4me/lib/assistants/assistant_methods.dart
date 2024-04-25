@@ -1,4 +1,4 @@
-import 'package:firebase_database/firebase_database.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 import 'package:route4me/assistants/request_assistant.dart';
@@ -10,15 +10,19 @@ import 'package:route4me/models/user_model.dart';
 
 class assistantMethods {
   static void readCurrentOnlineUserInfo() async {
-    currentUser = firebaseAuth.currentUser;
-    DatabaseReference userRef =
-        FirebaseDatabase.instance.ref().child("users").child(currentUser!.uid);
+    final currentUser = firebaseAuth.currentUser;
+    if (currentUser != null) {
+      final userRef =
+          FirebaseFirestore.instance.collection('Users').doc(currentUser.uid);
 
-    userRef.once().then((snap) {
-      if (snap.snapshot.value != null) {
-        userModelCurrentInfo = UserModel.forSnapshot(snap.snapshot);
-      }
-    });
+      userRef.get().then((doc) {
+        if (doc.exists) {
+          userModelCurrentInfo = UserModel.fromSnapshot(doc);
+        }
+      }).catchError((error) {
+        print("Failed to get user info: $error");
+      });
+    }
   }
 
   static Future<String> searchAddressForGeographicCoordinates(
