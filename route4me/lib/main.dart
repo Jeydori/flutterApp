@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:route4me/firebase_options.dart';
 import 'package:route4me/info%20handler/app_info.dart';
-import 'package:route4me/pages/search_page.dart';
 import 'package:route4me/pages/splash_page.dart';
 
 void main() async {

@@ -10,7 +10,7 @@ import 'package:route4me/models/predicted_places.dart';
 
 class PlacePredictionTile extends StatefulWidget {
   final PredictedPlaces? predictedPlaces;
-  PlacePredictionTile({this.predictedPlaces});
+  const PlacePredictionTile({super.key, this.predictedPlaces});
 
   @override
   State<PlacePredictionTile> createState() => _PlacePredictionTileState();
@@ -63,14 +63,14 @@ class _PlacePredictionTileState extends State<PlacePredictionTile> {
         backgroundColor: Colors.white,
       ),
       child: Padding(
-          padding: EdgeInsets.all(8),
+          padding: const EdgeInsets.all(8),
           child: Row(
             children: [
               Icon(
                 Icons.add_location,
                 color: Colors.orange[600],
               ),
-              SizedBox(
+              const SizedBox(
                 width: 10,
               ),
               Expanded(
@@ -80,12 +80,12 @@ class _PlacePredictionTileState extends State<PlacePredictionTile> {
                     Text(
                       widget.predictedPlaces!.main_text!,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 16, color: Colors.black),
+                      style: const TextStyle(fontSize: 16, color: Colors.black),
                     ),
                     Text(
                       widget.predictedPlaces!.secondary_text!,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 16, color: Colors.black),
+                      style: const TextStyle(fontSize: 16, color: Colors.black),
                     ),
                   ],
                 ),

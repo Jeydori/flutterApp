@@ -52,12 +52,12 @@ class _SearchPageState extends State<SearchPage> {
             onTap: () {
               Navigator.pop(context);
             },
-            child: Icon(
+            child: const Icon(
               Icons.arrow_back,
               color: Colors.black,
             ),
           ),
-          title: Text(
+          title: const Text(
             "Search & Set Destination",
             style: TextStyle(color: Colors.black),
           ),
@@ -68,7 +68,7 @@ class _SearchPageState extends State<SearchPage> {
             Container(
               decoration: BoxDecoration(
                 color: Colors.amber.shade400,
-                boxShadow: [
+                boxShadow: const [
                   BoxShadow(
                     color: Colors.white,
                     blurRadius: 8,
@@ -81,26 +81,26 @@ class _SearchPageState extends State<SearchPage> {
                 ],
               ),
               child: Padding(
-                padding: EdgeInsets.all(10.0),
+                padding: const EdgeInsets.all(10.0),
                 child: Column(
                   children: [
                     Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.adjust_sharp,
                           color: Colors.black,
                         ),
-                        SizedBox(
+                        const SizedBox(
                           height: 18.0,
                         ),
                         Expanded(
                           child: Padding(
-                            padding: EdgeInsets.all(8),
+                            padding: const EdgeInsets.all(8),
                             child: TextField(
                               onChanged: (value) {
                                 findPlaceAutoCompleteSearch(value);
                               },
-                              decoration: InputDecoration(
+                              decoration: const InputDecoration(
                                   hintText: "Search location here...",
                                   fillColor: Colors.orange,
                                   filled: true,
@@ -121,18 +121,18 @@ class _SearchPageState extends State<SearchPage> {
             ),
 
             //display places prediction
-            (placesPredictedList.length > 0)
+            (placesPredictedList.isNotEmpty)
                 ? Expanded(
                     child: ListView.separated(
                       itemCount: placesPredictedList.length,
-                      physics: ClampingScrollPhysics(),
+                      physics: const ClampingScrollPhysics(),
                       itemBuilder: (context, index) {
                         return PlacePredictionTile(
                           predictedPlaces: placesPredictedList[index],
                         );
                       },
                       separatorBuilder: (BuildContext context, int index) {
-                        return Divider(
+                        return const Divider(
                           height: 0,
                           color: Colors.black,
                           thickness: 0,

@@ -12,8 +12,8 @@ class SplashPage extends StatefulWidget {
 
 class _SplashPageState extends State<SplashPage> {
   startTimer() {
-    Timer(Duration(seconds: 3), () async {
-      Navigator.push(context, MaterialPageRoute(builder: (c) => AuthPage()));
+    Timer(const Duration(seconds: 3), () async {
+      Navigator.push(context, MaterialPageRoute(builder: (c) => const AuthPage()));
     });
   }
 

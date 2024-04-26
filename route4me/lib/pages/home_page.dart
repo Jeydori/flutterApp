@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geocoder2/geocoder2.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -7,6 +8,7 @@ import 'package:location/location.dart' hide LocationAccuracy;
 import 'package:provider/provider.dart';
 import 'package:route4me/assistants/assistant_methods.dart';
 import 'package:route4me/components/drawer.dart';
+import 'package:route4me/components/progress_dialog.dart';
 import 'package:route4me/global/directions.dart';
 import 'package:route4me/global/global.dart';
 import 'package:route4me/global/map_key.dart';
@@ -84,12 +86,92 @@ class _HomePageState extends State<HomePage> {
         .searchAddressForGeographicCoordinates(userCurrentPosition!, context);
     print('This is our address = $humanReadableAddress');
 
-    userName = userModelCurrentInfo!.firstName!;
-    userEmail = userModelCurrentInfo!.email!;
+    userName = userModelCurrentInfo!.firstName;
+    userEmail = userModelCurrentInfo!.email;
 
     // initializeGeofireListener();
 
     //assistantMethods.readTripsKeysForOnlineUser(context);
+  }
+
+  Future<void> drawPolylineFromOriginToDestination() async {
+    var originPosition =
+        Provider.of<appInfo>(context, listen: false).userPickUpLocation;
+    var destinationPosition =
+        Provider.of<appInfo>(context, listen: false).userDestinationLocation;
+
+    var originLatLng = LatLng(
+        originPosition!.locationLatitude!, originPosition.locationLongitude!);
+    var destinationLatLng = LatLng(destinationPosition!.locationLatitude!,
+        destinationPosition.locationLongitude!);
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) =>
+          ProgressDialog(message: "Please wait..."),
+    );
+
+    var directionDetailsInfo =
+        await assistantMethods.obtainOriginToDestinationDirectionDetails(
+            originLatLng, destinationLatLng);
+
+    setState(() {
+      tripDirectionDetailsInfo = directionDetailsInfo;
+    });
+
+    Navigator.pop(context);
+
+    PolylinePoints pPoints = PolylinePoints();
+    List<PointLatLng> decodePolylinePointsResultList =
+        pPoints.decodePolyline(directionDetailsInfo.e_points!);
+
+    pLineCoordinatedList.clear();
+
+    if (decodePolylinePointsResultList.isNotEmpty) {
+      decodePolylinePointsResultList.forEach((PointLatLng pointLatLng) {
+        pLineCoordinatedList
+            .add(LatLng(pointLatLng.latitude, pointLatLng.longitude));
+      });
+    }
+
+    polylineSet.clear();
+
+    setState(() {
+      Polyline polyline = Polyline(
+        color: Colors.blue,
+        polylineId: PolylineId('PolylineID'),
+        jointType: JointType.round,
+        points: pLineCoordinatedList,
+        startCap: Cap.roundCap,
+        endCap: Cap.roundCap,
+        geodesic: true,
+        width: 5,
+      );
+      polylineSet.add(polyline);
+    });
+
+    LatLngBounds boundsLatLng;
+    if (originLatLng.latitude > destinationLatLng.latitude &&
+        originLatLng.longitude > destinationLatLng.longitude) {
+      boundsLatLng =
+          LatLngBounds(southwest: destinationLatLng, northeast: originLatLng);
+    } else if (originLatLng.longitude > destinationLatLng.longitude) {
+      boundsLatLng = LatLngBounds(
+        southwest: LatLng(originLatLng.latitude, destinationLatLng.longitude),
+        northeast: LatLng(destinationLatLng.latitude, originLatLng.longitude),
+      );
+    } else if (originLatLng.latitude > destinationLatLng.latitude) {
+      boundsLatLng = LatLngBounds(
+        southwest: LatLng(destinationLatLng.latitude, originLatLng.longitude),
+        northeast: LatLng(originLatLng.latitude, destinationLatLng.longitude),
+      );
+    } else {
+      boundsLatLng =
+          LatLngBounds(southwest: originLatLng, northeast: destinationLatLng);
+    }
+
+    newGoogleMapController!
+        .animateCamera(CameraUpdate.newLatLngBounds(boundsLatLng, 65));
   }
 
   getAddressFromLatLng() async {
@@ -183,12 +265,12 @@ class _HomePageState extends State<HomePage> {
               left: 0,
               right: 0,
               child: Padding(
-                  padding: EdgeInsets.fromLTRB(20, 50, 20, 20),
+                  padding: const EdgeInsets.fromLTRB(20, 50, 20, 20),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Container(
-                          padding: EdgeInsets.all(10),
+                          padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
                             color: Colors.black38,
                             borderRadius: BorderRadius.circular(10),
@@ -202,19 +284,19 @@ class _HomePageState extends State<HomePage> {
                                 ),
                                 child: Column(children: [
                                   Padding(
-                                    padding: EdgeInsets.all(5),
+                                    padding: const EdgeInsets.all(5),
                                     child: Row(
                                       children: [
-                                        Icon(
+                                        const Icon(
                                           Icons.location_on_outlined,
                                           color: Colors.black,
                                         ),
-                                        SizedBox(width: 10),
+                                        const SizedBox(width: 10),
                                         Column(
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
-                                            Text(
+                                            const Text(
                                               "From",
                                               style: TextStyle(
                                                 color: Colors.black,
@@ -226,12 +308,7 @@ class _HomePageState extends State<HomePage> {
                                               Provider.of<appInfo>(context)
                                                           .userPickUpLocation !=
                                                       null
-                                                  ? (Provider.of<appInfo>(
-                                                                  context)
-                                                              .userPickUpLocation!
-                                                              .locationName!)
-                                                          .substring(0, 24) +
-                                                      "..."
+                                                  ? "${(Provider.of<appInfo>(context).userPickUpLocation!.locationName!).substring(0, 24)}..."
                                                   : "Not Getting Address",
                                             )
                                           ],
@@ -239,15 +316,15 @@ class _HomePageState extends State<HomePage> {
                                       ],
                                     ),
                                   ),
-                                  SizedBox(height: 5),
-                                  Divider(
+                                  const SizedBox(height: 5),
+                                  const Divider(
                                     height: 1,
                                     thickness: 2,
                                     color: Colors.black,
                                   ),
-                                  SizedBox(height: 5),
+                                  const SizedBox(height: 5),
                                   Padding(
-                                    padding: EdgeInsets.all(5),
+                                    padding: const EdgeInsets.all(5),
                                     child: GestureDetector(
                                       onTap: () async {
                                         //go to search page
@@ -256,7 +333,7 @@ class _HomePageState extends State<HomePage> {
                                                 context,
                                                 MaterialPageRoute(
                                                     builder: (c) =>
-                                                        SearchPage()));
+                                                        const SearchPage()));
 
                                         if (responseFromSearchPage ==
                                             "obtainedDestination") {
@@ -264,20 +341,20 @@ class _HomePageState extends State<HomePage> {
                                             openNavigationDrawer = false;
                                           });
                                         }
-                                        //await drawPolylineFromOriginToDestination(Colors.blue);
+                                        await drawPolylineFromOriginToDestination();
                                       },
                                       child: Row(
                                         children: [
-                                          Icon(
+                                          const Icon(
                                             Icons.location_on_outlined,
                                             color: Colors.black,
                                           ),
-                                          SizedBox(width: 10),
+                                          const SizedBox(width: 10),
                                           Column(
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
                                             children: [
-                                              Text(
+                                              const Text(
                                                 "Where to",
                                                 style: TextStyle(
                                                   color: Colors.black,
