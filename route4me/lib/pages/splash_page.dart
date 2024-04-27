@@ -13,7 +13,8 @@ class SplashPage extends StatefulWidget {
 class _SplashPageState extends State<SplashPage> {
   startTimer() {
     Timer(const Duration(seconds: 3), () async {
-      Navigator.push(context, MaterialPageRoute(builder: (c) => const AuthPage()));
+      Navigator.push(
+          context, MaterialPageRoute(builder: (c) => const AuthPage()));
     });
   }
 
@@ -31,7 +32,7 @@ class _SplashPageState extends State<SplashPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Image.asset(
-              'lib/images/route4me splash icon.jpg',
+              'lib/images/route4me logo.png',
               height: 260,
               width: 300,
             ),

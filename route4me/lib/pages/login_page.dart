@@ -69,7 +69,7 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
             const SizedBox(height: 50),
             Image.asset(
-              'lib/images/route4me logo.jpg',
+              'lib/images/route4me logo.png',
               height: 260,
               width: 300,
             ),

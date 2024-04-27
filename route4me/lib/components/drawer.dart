@@ -16,7 +16,7 @@ class MyDrawer extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(top: 50.0),
             child: Image.asset(
-              'lib/images/route4me logo.jpg',
+              'lib/images/route4me logo.png',
               height: 260,
               width: 300,
             ),

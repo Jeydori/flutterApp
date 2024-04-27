@@ -70,7 +70,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Image.asset(
-            'lib/images/route4me icon lang.jpg',
+            'lib/images/route4me icon lang.png',
             height: 100,
             width: 100,
           ),

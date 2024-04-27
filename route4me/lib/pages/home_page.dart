@@ -13,6 +13,7 @@ import 'package:route4me/global/directions.dart';
 import 'package:route4me/global/global.dart';
 import 'package:route4me/global/map_key.dart';
 import 'package:route4me/pages/search_page.dart';
+import 'package:route4me/services/precise_pickup_location.dart';
 
 import '../info handler/app_info.dart';
 
@@ -218,26 +219,26 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  getAddressFromLatLng() async {
-    try {
-      GeoData data = await Geocoder2.getDataFromCoordinates(
-        latitude: pickLocation!.latitude,
-        longitude: pickLocation!.longitude,
-        googleMapApiKey: mapKey,
-      );
-      setState(() {
-        Directions userPickUpAddress = Directions();
-        userPickUpAddress.locationLatitude = pickLocation!.latitude;
-        userPickUpAddress.locationLongitude = pickLocation!.longitude;
-        userPickUpAddress.locationName = data.address;
-        //address = data.address;
-        Provider.of<appInfo>(context, listen: false)
-            .updatePickUpAddress(userPickUpAddress);
-      });
-    } catch (e) {
-      print(e);
-    }
-  }
+  // getAddressFromLatLng() async {
+  //   try {
+  //     GeoData data = await Geocoder2.getDataFromCoordinates(
+  //       latitude: pickLocation!.latitude,
+  //       longitude: pickLocation!.longitude,
+  //       googleMapApiKey: mapKey,
+  //     );
+  //     setState(() {
+  //       Directions userPickUpAddress = Directions();
+  //       userPickUpAddress.locationLatitude = pickLocation!.latitude;
+  //       userPickUpAddress.locationLongitude = pickLocation!.longitude;
+  //       userPickUpAddress.locationName = data.address;
+  //       //address = data.address;
+  //       Provider.of<appInfo>(context, listen: false)
+  //           .updatePickUpAddress(userPickUpAddress);
+  //     });
+  //   } catch (e) {
+  //     print(e);
+  //   }
+  // }
 
   checkIfLocationPermissionAllowed() async {
     locationPermission = await Geolocator.requestPermission();
@@ -283,26 +284,26 @@ class _HomePageState extends State<HomePage> {
                 setState(() {});
                 locateUserPosition();
               },
-              onCameraMove: (CameraPosition? position) {
-                if (pickLocation != position!.target) {
-                  setState(() {
-                    pickLocation = position.target;
-                  });
-                }
-              },
-              onCameraIdle: () {
-                getAddressFromLatLng();
-              },
-            ),
-            Align(
-              alignment: Alignment.center,
-              child: Padding(
-                  padding: const EdgeInsets.only(bottom: 35.0),
-                  child: Icon(
-                    Icons.location_on_outlined,
-                    color: Colors.orange[600],
-                    size: 50,
-                  )),
+              //   onCameraMove: (CameraPosition? position) {
+              //     if (pickLocation != position!.target) {
+              //       setState(() {
+              //         pickLocation = position.target;
+              //       });
+              //     }
+              //   },
+              //   onCameraIdle: () {
+              //     getAddressFromLatLng();
+              //   },
+              // ),
+              // Align(
+              //   alignment: Alignment.center,
+              //   child: Padding(
+              //       padding: const EdgeInsets.only(bottom: 35.0),
+              //       child: Icon(
+              //         Icons.location_on_outlined,
+              //         color: Colors.orange[600],
+              //         size: 50,
+              //       )),
             ),
             Positioned(
               bottom: 0,
@@ -352,7 +353,12 @@ class _HomePageState extends State<HomePage> {
                                               Provider.of<appInfo>(context)
                                                           .userPickUpLocation !=
                                                       null
-                                                  ? "${(Provider.of<appInfo>(context).userPickUpLocation!.locationName!).substring(0, 24)}..."
+                                                  ? (Provider.of<appInfo>(
+                                                                  context)
+                                                              .userPickUpLocation!
+                                                              .locationName!)
+                                                          .substring(0, 24) +
+                                                      "..."
                                                   : "Not Getting Address",
                                             )
                                           ],
@@ -423,7 +429,56 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                   ),
                                 ]),
-                              )
+                              ),
+                              SizedBox(
+                                height: 5,
+                              ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (c) =>
+                                                  PrecisePickUpLocation()));
+                                    },
+                                    child: Text(
+                                      'Change Pick Up',
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.amber[400],
+                                      textStyle: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: 10,
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () {},
+                                    child: Text(
+                                      'Find a PUV',
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.amber[400],
+                                      textStyle: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ],
                           ))
                     ],

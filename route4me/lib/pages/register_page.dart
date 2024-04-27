@@ -105,7 +105,7 @@ class _RegisterPageState extends State<RegisterPage> {
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
             const SizedBox(height: 10),
             Image.asset(
-              'lib/images/route4me icon lang.jpg',
+              'lib/images/route4me text lang.png',
               height: 100,
               width: 100,
             ),
