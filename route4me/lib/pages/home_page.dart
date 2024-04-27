@@ -172,6 +172,50 @@ class _HomePageState extends State<HomePage> {
 
     newGoogleMapController!
         .animateCamera(CameraUpdate.newLatLngBounds(boundsLatLng, 65));
+
+    Marker originMaker = Marker(
+      markerId: MarkerId("originID"),
+      infoWindow:
+          InfoWindow(title: originPosition.locationName, snippet: "Origin"),
+      position: originLatLng,
+      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+    );
+
+    Marker destinationMaker = Marker(
+      markerId: MarkerId("destinationID"),
+      infoWindow: InfoWindow(
+          title: destinationPosition.locationName, snippet: "Destination"),
+      position: destinationLatLng,
+      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+    );
+
+    setState(() {
+      markerSet.add(originMaker);
+      markerSet.add(destinationMaker);
+    });
+
+    Circle originCircle = Circle(
+      circleId: CircleId("originID"),
+      fillColor: Colors.green,
+      radius: 12,
+      strokeWidth: 3,
+      strokeColor: Colors.white,
+      center: originLatLng,
+    );
+
+    Circle destinationCircle = Circle(
+      circleId: CircleId("destinationID"),
+      fillColor: Colors.red,
+      radius: 12,
+      strokeWidth: 3,
+      strokeColor: Colors.white,
+      center: destinationLatLng,
+    );
+
+    setState(() {
+      circleSet.add(originCircle);
+      circleSet.add(destinationCircle);
+    });
   }
 
   getAddressFromLatLng() async {
@@ -227,7 +271,7 @@ class _HomePageState extends State<HomePage> {
               mapType: MapType.normal,
               myLocationEnabled: true,
               zoomGesturesEnabled: true,
-              zoomControlsEnabled: true,
+              zoomControlsEnabled: false,
               initialCameraPosition: _kGooglePlex,
               polylines: polylineSet,
               markers: markerSet,
