@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
-import 'package:geocoder2/geocoder2.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart' hide LocationAccuracy;
@@ -9,9 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:route4me/assistants/assistant_methods.dart';
 import 'package:route4me/components/drawer.dart';
 import 'package:route4me/components/progress_dialog.dart';
-import 'package:route4me/global/directions.dart';
 import 'package:route4me/global/global.dart';
-import 'package:route4me/global/map_key.dart';
 import 'package:route4me/pages/search_page.dart';
 import 'package:route4me/services/precise_pickup_location.dart';
 
@@ -129,10 +126,10 @@ class _HomePageState extends State<HomePage> {
     pLineCoordinatedList.clear();
 
     if (decodePolylinePointsResultList.isNotEmpty) {
-      decodePolylinePointsResultList.forEach((PointLatLng pointLatLng) {
+      for (var pointLatLng in decodePolylinePointsResultList) {
         pLineCoordinatedList
             .add(LatLng(pointLatLng.latitude, pointLatLng.longitude));
-      });
+      }
     }
 
     polylineSet.clear();
@@ -140,7 +137,7 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       Polyline polyline = Polyline(
         color: Colors.blue,
-        polylineId: PolylineId('PolylineID'),
+        polylineId: const PolylineId('PolylineID'),
         jointType: JointType.round,
         points: pLineCoordinatedList,
         startCap: Cap.roundCap,
@@ -175,7 +172,7 @@ class _HomePageState extends State<HomePage> {
         .animateCamera(CameraUpdate.newLatLngBounds(boundsLatLng, 65));
 
     Marker originMaker = Marker(
-      markerId: MarkerId("originID"),
+      markerId: const MarkerId("originID"),
       infoWindow:
           InfoWindow(title: originPosition.locationName, snippet: "Origin"),
       position: originLatLng,
@@ -183,7 +180,7 @@ class _HomePageState extends State<HomePage> {
     );
 
     Marker destinationMaker = Marker(
-      markerId: MarkerId("destinationID"),
+      markerId: const MarkerId("destinationID"),
       infoWindow: InfoWindow(
           title: destinationPosition.locationName, snippet: "Destination"),
       position: destinationLatLng,
@@ -196,7 +193,7 @@ class _HomePageState extends State<HomePage> {
     });
 
     Circle originCircle = Circle(
-      circleId: CircleId("originID"),
+      circleId: const CircleId("originID"),
       fillColor: Colors.green,
       radius: 12,
       strokeWidth: 3,
@@ -205,7 +202,7 @@ class _HomePageState extends State<HomePage> {
     );
 
     Circle destinationCircle = Circle(
-      circleId: CircleId("destinationID"),
+      circleId: const CircleId("destinationID"),
       fillColor: Colors.red,
       radius: 12,
       strokeWidth: 3,
@@ -353,12 +350,11 @@ class _HomePageState extends State<HomePage> {
                                               Provider.of<appInfo>(context)
                                                           .userPickUpLocation !=
                                                       null
-                                                  ? (Provider.of<appInfo>(
+                                                  ? "${(Provider.of<appInfo>(
                                                                   context)
                                                               .userPickUpLocation!
                                                               .locationName!)
-                                                          .substring(0, 24) +
-                                                      "..."
+                                                          .substring(0, 24)}..."
                                                   : "Not Getting Address",
                                             )
                                           ],
@@ -430,7 +426,7 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                 ]),
                               ),
-                              SizedBox(
+                              const SizedBox(
                                 height: 5,
                               ),
                               Row(
@@ -442,38 +438,38 @@ class _HomePageState extends State<HomePage> {
                                           context,
                                           MaterialPageRoute(
                                               builder: (c) =>
-                                                  PrecisePickUpLocation()));
+                                                  const PrecisePickUpLocation()));
                                     },
-                                    child: Text(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.amber[400],
+                                      textStyle: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    child: const Text(
                                       'Change Pick Up',
                                       style: TextStyle(
                                         color: Colors.black,
                                       ),
                                     ),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.amber[400],
-                                      textStyle: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                      ),
-                                    ),
                                   ),
-                                  SizedBox(
+                                  const SizedBox(
                                     width: 10,
                                   ),
                                   ElevatedButton(
                                     onPressed: () {},
-                                    child: Text(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.amber[400],
+                                      textStyle: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    child: const Text(
                                       'Find a PUV',
                                       style: TextStyle(
                                         color: Colors.black,
-                                      ),
-                                    ),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.amber[400],
-                                      textStyle: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
                                       ),
                                     ),
                                   ),

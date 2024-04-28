@@ -133,11 +133,7 @@ class _PrecisePickUpLocationState extends State<PrecisePickUpLocation> {
               padding: const EdgeInsets.all(20),
               child: Text(
                 Provider.of<appInfo>(context).userPickUpLocation != null
-                    ? (Provider.of<appInfo>(context)
-                                .userPickUpLocation!
-                                .locationName!)
-                            .substring(0, 24) +
-                        "..."
+                    ? "${(Provider.of<appInfo>(context).userPickUpLocation!.locationName!).substring(0, 24)}..."
                     : "Not Getting Address",
                 overflow: TextOverflow.visible,
                 softWrap: true,
@@ -149,19 +145,20 @@ class _PrecisePickUpLocationState extends State<PrecisePickUpLocation> {
             left: 0,
             right: 0,
             child: Padding(
-              padding: EdgeInsets.all(12),
+              padding: const EdgeInsets.all(12),
               child: ElevatedButton(
                 onPressed: () {
                   Navigator.pop(context);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orange[600],
-                  textStyle: TextStyle(
+                  textStyle: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
+                    color: Colors.black,
                   ),
                 ),
-                child: Text("Set Current Location"),
+                child: const Text("Set Current Location"),
               ),
             ),
           ),
