@@ -260,7 +260,12 @@ class _HomePageState extends State<HomePage> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text("Home"),
+          title: const Text(
+            "Home",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
         drawer: const MyDrawer(),
         body: Stack(
@@ -350,12 +355,8 @@ class _HomePageState extends State<HomePage> {
                                               Provider.of<appInfo>(context)
                                                           .userPickUpLocation !=
                                                       null
-                                                  ? "${(Provider.of<appInfo>(
-                                                                  context)
-                                                              .userPickUpLocation!
-                                                              .locationName!)
-                                                          .substring(0, 24)}..."
-                                                  : "Not Getting Address",
+                                                  ? "${(Provider.of<appInfo>(context).userPickUpLocation!.locationName!).substring(0, 24)}..."
+                                                  : "...",
                                             )
                                           ],
                                         )

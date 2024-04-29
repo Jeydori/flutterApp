@@ -5,12 +5,14 @@ class UserModel {
   String lastName;
   int age;
   String email;
+  String uid;
 
   UserModel({
     required this.firstName,
     required this.lastName,
     required this.age,
     required this.email,
+    required this.uid,
   });
 
   factory UserModel.fromSnapshot(DocumentSnapshot snapshot) {
@@ -20,6 +22,7 @@ class UserModel {
       lastName: data['Last Name'] ?? '',
       age: data['Age'] ?? 0,
       email: data['Email'] ?? '',
+      uid: data['Uid'] ?? '',
     );
   }
 }

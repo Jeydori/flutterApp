@@ -11,19 +11,27 @@ import 'package:route4me/models/direction_infos.dart';
 import 'package:route4me/models/user_model.dart';
 
 class assistantMethods {
-  static void readCurrentOnlineUserInfo() async {
-    final currentUser = firebaseAuth.currentUser;
-    if (currentUser != null) {
-      final userRef =
-          FirebaseFirestore.instance.collection('Users').doc(currentUser.uid);
+  static Future<void> readCurrentOnlineUserInfo() async {
+    try {
+      final currentUser = firebaseAuth.currentUser;
+      if (currentUser != null) {
+        final userRef =
+            FirebaseFirestore.instance.collection('Users').doc(currentUser.uid);
 
-      userRef.get().then((doc) {
+        DocumentSnapshot doc = await userRef.get();
+
         if (doc.exists) {
           userModelCurrentInfo = UserModel.fromSnapshot(doc);
+          print('User info retrieved: $userModelCurrentInfo');
+        } else {
+          throw Exception('User document does not exist');
         }
-      }).catchError((error) {
-        print("Failed to get user info: $error");
-      });
+      } else {
+        throw Exception('Current user is null');
+      }
+    } catch (error) {
+      print("Failed to get user info: $error");
+      throw error; // Propagate the error for handling by the caller
     }
   }
 

@@ -38,21 +38,30 @@ class _RegisterPageState extends State<RegisterPage> {
   //sign user up method
   void signUp() async {
     try {
-      Future addUserDetails(
-          String firstName, String lastName, int Age, String Email) async {
-        await FirebaseFirestore.instance.collection("Users").add({
+      Future<void> addUserDetails(String firstName, String lastName, int age,
+          String email, String uid) async {
+        await FirebaseFirestore.instance.collection("Users").doc(uid).set({
           'First Name': firstName,
           'Last Name': lastName,
-          'Age': Age,
-          'Email': Email,
+          'Age': age,
+          'Email': email,
+          'Uid': uid,
+        }).then((_) {
+          print("Document added with ID: $uid");
+        }).catchError((error) {
+          print("Failed to add user: $error");
         });
       }
 
       //check if password is confirmed
       if (passwordController.text == confirmPasswordController.text) {
         //create user
-        await firebaseAuth.createUserWithEmailAndPassword(
-            email: emailController.text, password: passwordController.text);
+        UserCredential userCredential =
+            await firebaseAuth.createUserWithEmailAndPassword(
+                email: emailController.text, password: passwordController.text);
+
+        // Get the UID of the newly created user
+        String uid = userCredential.user!.uid;
 
         //add user details
         addUserDetails(
@@ -60,6 +69,7 @@ class _RegisterPageState extends State<RegisterPage> {
           lastNameController.text.trim(),
           int.parse(ageController.text.trim()),
           emailController.text.trim(),
+          uid,
         );
         //if no exception were thrown
         showDialog(

@@ -19,7 +19,10 @@ class DrawerTile extends StatelessWidget {
       child: ListTile(
         title: Text(
           text,
-          style: const TextStyle(color: Colors.black),
+          style: const TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         leading: Icon(
           icon,
