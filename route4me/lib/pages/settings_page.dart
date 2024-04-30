@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:route4me/pages/profile_page.dart';
 
 class SettingsPage extends StatelessWidget {
+  const SettingsPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'Settings',
           style: TextStyle(
             fontWeight: FontWeight.bold,
@@ -16,11 +18,11 @@ class SettingsPage extends StatelessWidget {
       ),
       body: Container(
         color: Colors.white,
-        padding: EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text(
+            const Text(
               'General Settings',
               style: TextStyle(
                 color: Colors.black,
@@ -28,7 +30,7 @@ class SettingsPage extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 20.0),
+            const SizedBox(height: 20.0),
             ElevatedButton(
               onPressed: () {
                 Navigator.pop(context);
@@ -39,7 +41,7 @@ class SettingsPage extends StatelessWidget {
                 ),
                 backgroundColor: Colors.orange[600],
               ),
-              child: Text(
+              child: const Text(
                 "Notifications",
                 style: TextStyle(
                   fontWeight: FontWeight.normal,
@@ -58,7 +60,7 @@ class SettingsPage extends StatelessWidget {
                 ),
                 backgroundColor: Colors.orange[600],
               ),
-              child: Text(
+              child: const Text(
                 "Privacy",
                 style: TextStyle(
                   fontWeight: FontWeight.normal,
@@ -77,7 +79,7 @@ class SettingsPage extends StatelessWidget {
                 ),
                 backgroundColor: Colors.orange[600],
               ),
-              child: Text(
+              child: const Text(
                 "Security",
                 style: TextStyle(
                   fontWeight: FontWeight.normal,
@@ -96,7 +98,7 @@ class SettingsPage extends StatelessWidget {
                 ),
                 backgroundColor: Colors.orange[600],
               ),
-              child: Text(
+              child: const Text(
                 "About Us",
                 style: TextStyle(
                   fontWeight: FontWeight.normal,
@@ -105,8 +107,8 @@ class SettingsPage extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(height: 18.0),
-            Text(
+            const SizedBox(height: 18.0),
+            const Text(
               'Account',
               style: TextStyle(
                 color: Colors.black,
@@ -118,7 +120,7 @@ class SettingsPage extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (c) => ProfilePage()),
+                  MaterialPageRoute(builder: (c) => const ProfilePage()),
                 );
               },
               style: ElevatedButton.styleFrom(
@@ -127,7 +129,7 @@ class SettingsPage extends StatelessWidget {
                 ),
                 backgroundColor: Colors.orange[600],
               ),
-              child: Text(
+              child: const Text(
                 "Profile",
                 style: TextStyle(
                   fontWeight: FontWeight.normal,
@@ -146,7 +148,7 @@ class SettingsPage extends StatelessWidget {
                 ),
                 backgroundColor: Colors.orange[600],
               ),
-              child: Text(
+              child: const Text(
                 "Deletion",
                 style: TextStyle(
                   fontWeight: FontWeight.normal,
@@ -155,7 +157,7 @@ class SettingsPage extends StatelessWidget {
                 ),
               ),
             ),
-            Divider(
+            const Divider(
               color: Colors.white,
               thickness: 1.0,
             ),

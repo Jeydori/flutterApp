@@ -70,7 +70,7 @@ class _PlacePredictionTileState extends State<PlacePredictionTile> {
             padding: const EdgeInsets.all(8),
             child: Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.location_on_outlined,
                   color: Colors.black,
                 ),

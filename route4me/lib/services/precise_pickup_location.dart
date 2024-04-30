@@ -157,7 +157,7 @@ class _PrecisePickUpLocationState extends State<PrecisePickUpLocation> {
                   ),
                   backgroundColor: Colors.orange[600],
                 ),
-                child: Text(
+                child: const Text(
                   "Set Current Location",
                   style: TextStyle(
                     fontWeight: FontWeight.bold,

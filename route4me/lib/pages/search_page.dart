@@ -47,7 +47,7 @@ class _SearchPageState extends State<SearchPage> {
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
-          title: Text(
+          title: const Text(
             'Search and Set Destination',
             style: TextStyle(
               fontWeight: FontWeight.bold,
@@ -92,13 +92,13 @@ class _SearchPageState extends State<SearchPage> {
                                   borderRadius: BorderRadius.circular(10),
                                   borderSide: BorderSide.none,
                                 ),
-                                prefixIcon: Icon(
+                                prefixIcon: const Icon(
                                   Icons.search_outlined,
                                   color: Colors.black,
                                 ),
                                 hintText: "Search location here...",
-                                hintStyle: TextStyle(color: Colors.black),
-                                contentPadding: EdgeInsets.symmetric(
+                                hintStyle: const TextStyle(color: Colors.black),
+                                contentPadding: const EdgeInsets.symmetric(
                                     vertical: 8, horizontal: 16),
                               ),
                             ),

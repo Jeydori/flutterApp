@@ -31,7 +31,7 @@ class assistantMethods {
       }
     } catch (error) {
       print("Failed to get user info: $error");
-      throw error; // Propagate the error for handling by the caller
+      rethrow; // Propagate the error for handling by the caller
     }
   }
 

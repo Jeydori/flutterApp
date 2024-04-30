@@ -4,7 +4,7 @@ import 'package:route4me/global/global.dart';
 import 'package:route4me/models/user_model.dart';
 
 class ProfilePage extends StatefulWidget {
-  const ProfilePage({Key? key}) : super(key: key);
+  const ProfilePage({super.key});
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
@@ -60,25 +60,25 @@ class _ProfilePageState extends State<ProfilePage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Update User Information'),
+          title: const Text('Update User Information'),
           content: SingleChildScrollView(
             child: Column(
               children: [
                 TextFormField(
                   controller: firstNameController,
-                  decoration: InputDecoration(labelText: 'First Name'),
+                  decoration: const InputDecoration(labelText: 'First Name'),
                 ),
                 TextFormField(
                   controller: lastNameController,
-                  decoration: InputDecoration(labelText: 'Last Name'),
+                  decoration: const InputDecoration(labelText: 'Last Name'),
                 ),
                 TextFormField(
                   controller: ageController,
-                  decoration: InputDecoration(labelText: 'Age'),
+                  decoration: const InputDecoration(labelText: 'Age'),
                 ),
                 TextFormField(
                   controller: emailController,
-                  decoration: InputDecoration(labelText: 'Email'),
+                  decoration: const InputDecoration(labelText: 'Email'),
                 ),
               ],
             ),
@@ -88,7 +88,7 @@ class _ProfilePageState extends State<ProfilePage> {
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: Text(
+              child: const Text(
                 'Cancel',
                 style: TextStyle(color: Colors.red),
               ),
@@ -99,7 +99,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 updateUserInfo();
                 Navigator.pop(context);
               },
-              child: Text(
+              child: const Text(
                 'Ok',
                 style: TextStyle(color: Colors.blue),
               ),
@@ -146,7 +146,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'Profile',
           style: TextStyle(
             fontWeight: FontWeight.bold,
@@ -157,24 +157,24 @@ class _ProfilePageState extends State<ProfilePage> {
       body: SingleChildScrollView(
         child: Center(
           child: Padding(
-            padding: EdgeInsets.fromLTRB(30, 30, 30, 50),
+            padding: const EdgeInsets.fromLTRB(30, 30, 30, 50),
             child: Column(
               children: [
                 Container(
-                  padding: EdgeInsets.all(50),
+                  padding: const EdgeInsets.all(50),
                   decoration: BoxDecoration(
                     color: Colors.orange[600],
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(Icons.person_outline, size: 80),
+                  child: const Icon(Icons.person_outline, size: 80),
                 ),
-                SizedBox(height: 30),
+                const SizedBox(height: 30),
                 // Text form fields for user information
                 TextFormField(
                   controller: firstNameController,
-                  style: TextStyle(color: Colors.black),
+                  style: const TextStyle(color: Colors.black),
                   readOnly: true,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'First Name',
                     labelStyle: TextStyle(color: Colors.black),
                     enabledBorder: UnderlineInputBorder(
@@ -184,9 +184,9 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 TextFormField(
                   controller: lastNameController,
-                  style: TextStyle(color: Colors.black),
+                  style: const TextStyle(color: Colors.black),
                   readOnly: true,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Last Name',
                     labelStyle: TextStyle(color: Colors.black),
                     enabledBorder: UnderlineInputBorder(
@@ -196,9 +196,9 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 TextFormField(
                   controller: ageController,
-                  style: TextStyle(color: Colors.black),
+                  style: const TextStyle(color: Colors.black),
                   readOnly: true,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Age',
                     labelStyle: TextStyle(color: Colors.black),
                     enabledBorder: UnderlineInputBorder(
@@ -208,9 +208,9 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 TextFormField(
                   controller: emailController,
-                  style: TextStyle(color: Colors.black),
+                  style: const TextStyle(color: Colors.black),
                   readOnly: true,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Email',
                     labelStyle: TextStyle(color: Colors.black),
                     enabledBorder: UnderlineInputBorder(
@@ -218,7 +218,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                   ),
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () {
                     showUserNameDialogAlert(context);
@@ -229,7 +229,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     backgroundColor: Colors.orange[600],
                   ),
-                  child: Text(
+                  child: const Text(
                     'Edit Information',
                     style: TextStyle(color: Colors.black),
                   ),
