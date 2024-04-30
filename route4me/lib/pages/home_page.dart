@@ -433,44 +433,58 @@ class _HomePageState extends State<HomePage> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      Navigator.push(
+                                  Flexible(
+                                    child: ElevatedButton(
+                                      onPressed: () {
+                                        Navigator.push(
                                           context,
                                           MaterialPageRoute(
-                                              builder: (c) =>
-                                                  const PrecisePickUpLocation()));
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.amber[400],
-                                      textStyle: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
+                                            builder: (c) =>
+                                                const PrecisePickUpLocation(),
+                                          ),
+                                        );
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.amber[400],
+                                        textStyle: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
                                       ),
-                                    ),
-                                    child: const Text(
-                                      'Change Pick Up',
-                                      style: TextStyle(
-                                        color: Colors.black,
+                                      child: const Text(
+                                        'Change Pickup',
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                        ),
                                       ),
                                     ),
                                   ),
                                   const SizedBox(
                                     width: 10,
                                   ),
-                                  ElevatedButton(
-                                    onPressed: () {},
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.amber[400],
-                                      textStyle: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
+                                  Flexible(
+                                    child: ElevatedButton(
+                                      onPressed: () {},
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.amber[400],
+                                        textStyle: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
                                       ),
-                                    ),
-                                    child: const Text(
-                                      'Find a PUV',
-                                      style: TextStyle(
-                                        color: Colors.black,
+                                      child: const Text(
+                                        'Show PUVs',
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                        ),
                                       ),
                                     ),
                                   ),

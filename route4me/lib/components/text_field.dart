@@ -22,12 +22,12 @@ class textfield extends StatelessWidget {
         decoration: InputDecoration(
           enabledBorder: OutlineInputBorder(
             borderRadius:
-                BorderRadius.circular(30), // Adjust border radius as needed
+                BorderRadius.circular(10), // Adjust border radius as needed
             borderSide: const BorderSide(color: Colors.white),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius:
-                BorderRadius.circular(30), // Adjust border radius as needed
+                BorderRadius.circular(10), // Adjust border radius as needed
             borderSide: BorderSide(color: Colors.orange.shade600),
           ),
           fillColor: Colors.grey[300],

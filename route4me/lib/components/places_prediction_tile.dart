@@ -20,8 +20,10 @@ class _PlacePredictionTileState extends State<PlacePredictionTile> {
   getPlacePredictionDetails(String? placeId, context) async {
     showDialog(
         context: context,
-        builder: (BuildContext context) => ProgressDialog(
-              message: "Setting up Destination Location. Please wait...",
+        builder: (BuildContext context) => Flexible(
+              child: ProgressDialog(
+                message: "Setting up Destination Location...",
+              ),
             ));
     String placeDirectionDetailUrl =
         "https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&key=$mapKey";
@@ -60,38 +62,43 @@ class _PlacePredictionTileState extends State<PlacePredictionTile> {
         getPlacePredictionDetails(widget.predictedPlaces!.place_id, context);
       },
       style: ElevatedButton.styleFrom(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         backgroundColor: Colors.white,
       ),
-      child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: Row(
-            children: [
-              Icon(
-                Icons.add_location,
-                color: Colors.orange[600],
-              ),
-              const SizedBox(
-                width: 10,
-              ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.predictedPlaces!.main_text!,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 16, color: Colors.black),
-                    ),
-                    Text(
-                      widget.predictedPlaces!.secondary_text!,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 16, color: Colors.black),
-                    ),
-                  ],
+      child: Flexible(
+        child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.location_on_outlined,
+                  color: Colors.black,
                 ),
-              ),
-            ],
-          )),
+                const SizedBox(
+                  width: 10,
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.predictedPlaces!.main_text!,
+                        overflow: TextOverflow.ellipsis,
+                        style:
+                            const TextStyle(fontSize: 16, color: Colors.black),
+                      ),
+                      Text(
+                        widget.predictedPlaces!.secondary_text!,
+                        overflow: TextOverflow.ellipsis,
+                        style:
+                            const TextStyle(fontSize: 16, color: Colors.black),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            )),
+      ),
     );
   }
 }

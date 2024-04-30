@@ -129,7 +129,7 @@ class _PrecisePickUpLocationState extends State<PrecisePickUpLocation> {
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.orange.shade600),
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(30),
+                borderRadius: BorderRadius.circular(10),
               ),
               padding: const EdgeInsets.all(20),
               child: Text(
@@ -152,6 +152,9 @@ class _PrecisePickUpLocationState extends State<PrecisePickUpLocation> {
                   Navigator.pop(context);
                 },
                 style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                   backgroundColor: Colors.orange[600],
                 ),
                 child: Text(

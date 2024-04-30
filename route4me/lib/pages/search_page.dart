@@ -47,27 +47,19 @@ class _SearchPageState extends State<SearchPage> {
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
-          backgroundColor: Colors.amber.shade400,
-          leading: GestureDetector(
-            onTap: () {
-              Navigator.pop(context);
-            },
-            child: const Icon(
-              Icons.arrow_back,
-              color: Colors.black,
+          title: Text(
+            'Search and Set Destination',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
             ),
           ),
-          title: const Text(
-            "Search & Set Destination",
-            style: TextStyle(color: Colors.black),
-          ),
-          elevation: 0.0,
+          backgroundColor: Colors.white,
         ),
         body: Column(
           children: [
             Container(
               decoration: BoxDecoration(
-                color: Colors.amber.shade400,
+                color: Colors.orange[600],
                 boxShadow: const [
                   BoxShadow(
                     color: Colors.white,
@@ -86,13 +78,6 @@ class _SearchPageState extends State<SearchPage> {
                   children: [
                     Row(
                       children: [
-                        const Icon(
-                          Icons.adjust_sharp,
-                          color: Colors.black,
-                        ),
-                        const SizedBox(
-                          height: 18.0,
-                        ),
                         Expanded(
                           child: Padding(
                             padding: const EdgeInsets.all(8),
@@ -100,16 +85,22 @@ class _SearchPageState extends State<SearchPage> {
                               onChanged: (value) {
                                 findPlaceAutoCompleteSearch(value);
                               },
-                              decoration: const InputDecoration(
-                                  hintText: "Search location here...",
-                                  fillColor: Colors.orange,
-                                  filled: true,
-                                  border: InputBorder.none,
-                                  contentPadding: EdgeInsets.only(
-                                    left: 11,
-                                    top: 8,
-                                    bottom: 8,
-                                  )),
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: Colors.white,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide.none,
+                                ),
+                                prefixIcon: Icon(
+                                  Icons.search_outlined,
+                                  color: Colors.black,
+                                ),
+                                hintText: "Search location here...",
+                                hintStyle: TextStyle(color: Colors.black),
+                                contentPadding: EdgeInsets.symmetric(
+                                    vertical: 8, horizontal: 16),
+                              ),
                             ),
                           ),
                         )
@@ -134,7 +125,7 @@ class _SearchPageState extends State<SearchPage> {
                       separatorBuilder: (BuildContext context, int index) {
                         return const Divider(
                           height: 0,
-                          color: Colors.black,
+                          color: Colors.white,
                           thickness: 0,
                         );
                       },

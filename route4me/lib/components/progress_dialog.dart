@@ -6,30 +6,35 @@ class ProgressDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      child: Container(
-        margin: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Row(
-          children: [
-            const SizedBox(
-              width: 6,
+    return Flexible(
+      child: Dialog(
+        backgroundColor: Colors.white,
+        child: Flexible(
+          child: Container(
+            margin: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
             ),
-            const CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+            child: Row(
+              children: [
+                const SizedBox(
+                  width: 6,
+                ),
+                const CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.deepPurple),
+                ),
+                const SizedBox(width: 26),
+                Text(
+                  message!,
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 26),
-            Text(
-              message!,
-              style: const TextStyle(
-                color: Colors.black,
-                fontSize: 12,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );

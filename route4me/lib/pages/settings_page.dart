@@ -34,12 +34,15 @@ class SettingsPage extends StatelessWidget {
                 Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
                 backgroundColor: Colors.orange[600],
               ),
               child: Text(
                 "Notifications",
                 style: TextStyle(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.normal,
                   fontSize: 16,
                   color: Colors.white,
                 ),
@@ -50,12 +53,15 @@ class SettingsPage extends StatelessWidget {
                 Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
                 backgroundColor: Colors.orange[600],
               ),
               child: Text(
                 "Privacy",
                 style: TextStyle(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.normal,
                   fontSize: 16,
                   color: Colors.white,
                 ),
@@ -66,12 +72,15 @@ class SettingsPage extends StatelessWidget {
                 Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
                 backgroundColor: Colors.orange[600],
               ),
               child: Text(
                 "Security",
                 style: TextStyle(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.normal,
                   fontSize: 16,
                   color: Colors.white,
                 ),
@@ -82,12 +91,15 @@ class SettingsPage extends StatelessWidget {
                 Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
                 backgroundColor: Colors.orange[600],
               ),
               child: Text(
                 "About Us",
                 style: TextStyle(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.normal,
                   fontSize: 16,
                   color: Colors.white,
                 ),
@@ -110,12 +122,15 @@ class SettingsPage extends StatelessWidget {
                 );
               },
               style: ElevatedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
                 backgroundColor: Colors.orange[600],
               ),
               child: Text(
                 "Profile",
                 style: TextStyle(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.normal,
                   fontSize: 16,
                   color: Colors.white,
                 ),
@@ -126,12 +141,15 @@ class SettingsPage extends StatelessWidget {
                 Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
                 backgroundColor: Colors.orange[600],
               ),
               child: Text(
-                "Sign Out",
+                "Deletion",
                 style: TextStyle(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.normal,
                   fontSize: 16,
                   color: Colors.white,
                 ),

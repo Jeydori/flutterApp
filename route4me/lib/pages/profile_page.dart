@@ -144,28 +144,18 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        FocusScope.of(context).unfocus();
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          leading: IconButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            icon: Icon(
-              Icons.arrow_back_ios_new,
-              color: Colors.black,
-            ),
-          ),
-          title: Text(
-            'Profile',
-            style: TextStyle(fontWeight: FontWeight.bold),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          'Profile',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
           ),
         ),
-        body: Center(
+        backgroundColor: Colors.white,
+      ),
+      body: SingleChildScrollView(
+        child: Center(
           child: Padding(
             padding: EdgeInsets.fromLTRB(30, 30, 30, 50),
             child: Column(
@@ -234,6 +224,9 @@ class _ProfilePageState extends State<ProfilePage> {
                     showUserNameDialogAlert(context);
                   },
                   style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                     backgroundColor: Colors.orange[600],
                   ),
                   child: Text(
