@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:route4me/components/button.dart';
@@ -21,6 +22,7 @@ class _LoginPageState extends State<LoginPage> {
 
   final passwordController = TextEditingController();
 
+  //final formKey = GlobalKey<FormState>();
   //sign user in method
   void logIn() async {
     // show loading circle
@@ -32,13 +34,24 @@ class _LoginPageState extends State<LoginPage> {
         );
       },
     );
-    //try signing in
+
+    // try signing in
     try {
-      await firebaseAuth.signInWithEmailAndPassword(
-          email: emailController.text, password: passwordController.text);
+      final userCredential = await firebaseAuth.signInWithEmailAndPassword(
+        email: emailController.text,
+        password: passwordController.text,
+      );
+
+      // fetch user data from "Users" collection
+      await FirebaseFirestore.instance
+          .collection('Users')
+          .doc(userCredential.user?.uid)
+          .get();
 
       //pop the loading circle
       Navigator.pop(context);
+
+      // handle user data here, you can access it using userDoc.data()
     } on FirebaseAuthException catch (e) {
       //pop the loading circle
       Navigator.pop(context);
@@ -51,13 +64,13 @@ class _LoginPageState extends State<LoginPage> {
         },
       );
     }
+  }
 
-    @override
-    void dispose() {
-      emailController.dispose();
-      passwordController.dispose();
-      super.dispose();
-    }
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
   }
 
   @override
