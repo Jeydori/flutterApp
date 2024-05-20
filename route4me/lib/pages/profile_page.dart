@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:route4me/global/global.dart';
 import 'package:route4me/models/user_model.dart';
+import 'package:route4me/assistants/assistant_methods.dart';
 
 class ProfilePage extends StatefulWidget {
-  const ProfilePage({super.key});
+  const ProfilePage({Key? key}) : super(key: key);
 
   @override
-  State<ProfilePage> createState() => _ProfilePageState();
+  _ProfilePageState createState() => _ProfilePageState();
 }
 
 class _ProfilePageState extends State<ProfilePage> {
@@ -16,41 +15,51 @@ class _ProfilePageState extends State<ProfilePage> {
   final ageController = TextEditingController();
   final emailController = TextEditingController();
 
+  UserModel? currentUser;
+
   @override
   void initState() {
     super.initState();
     // Fetch current user's info when the profile page is initialized
-    readCurrentOnlineUserInfo();
+    fetchCurrentUser();
   }
 
-  Future<void> readCurrentOnlineUserInfo() async {
+  Future<void> fetchCurrentUser() async {
     try {
-      final currentUser = firebaseAuth.currentUser;
+      UserModel user = await assistantMethods.readCurrentOnlineUserInfo();
+      // Set the initial values for all fields
+      setState(() {
+        currentUser = user;
+        firstNameController.text = user.firstName;
+        lastNameController.text = user.lastName;
+        ageController.text = user.age.toString();
+        emailController.text = user.email;
+      });
+    } catch (error) {
+      print("Failed to fetch user info: $error");
+      // Handle error
+    }
+  }
+
+  Future<void> updateUserInfo() async {
+    try {
       if (currentUser != null) {
-        final userRef =
-            FirebaseFirestore.instance.collection('Users').doc(currentUser.uid);
-
-        DocumentSnapshot doc = await userRef.get();
-
-        if (doc.exists) {
-          // Update user model with fetched data
-          setState(() {
-            userModelCurrentInfo = UserModel.fromSnapshot(doc);
-            // Set the initial values for all fields
-            firstNameController.text = userModelCurrentInfo!.firstName;
-            lastNameController.text = userModelCurrentInfo!.lastName;
-            ageController.text = userModelCurrentInfo!.age.toString();
-            emailController.text = userModelCurrentInfo!.email;
-          });
-          print('User info retrieved: $userModelCurrentInfo');
-        } else {
-          throw Exception('User document does not exist');
-        }
-      } else {
-        throw Exception('Current user is null');
+        final updatedUserModel = UserModel(
+          firstName: firstNameController.text,
+          lastName: lastNameController.text,
+          age: int.tryParse(ageController.text) ?? 0,
+          email: emailController.text,
+          uid: currentUser!.uid,
+        );
+        await assistantMethods.updateUserInfo(updatedUserModel);
+        // Update local user model with the new information
+        setState(() {
+          currentUser = updatedUserModel;
+        });
+        print('User information updated successfully');
       }
     } catch (error) {
-      print("Failed to get user info: $error");
+      print("Failed to update user information: $error");
       // Handle error
     }
   }
@@ -95,7 +104,6 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             TextButton(
               onPressed: () {
-                // Implement the logic to update user information in Firestore
                 updateUserInfo();
                 Navigator.pop(context);
               },
@@ -108,38 +116,6 @@ class _ProfilePageState extends State<ProfilePage> {
         );
       },
     );
-  }
-
-  Future<void> updateUserInfo() async {
-    try {
-      final currentUser = firebaseAuth.currentUser;
-      if (currentUser != null) {
-        final userRef =
-            FirebaseFirestore.instance.collection('Users').doc(currentUser.uid);
-
-        await userRef.update({
-          'First Name': firstNameController.text,
-          'Last Name': lastNameController.text,
-          'Age': int.tryParse(ageController.text) ?? 0,
-          'Email': emailController.text,
-        });
-
-        // Update local user model with the new information
-        setState(() {
-          userModelCurrentInfo!.firstName = firstNameController.text;
-          userModelCurrentInfo!.lastName = lastNameController.text;
-          userModelCurrentInfo!.age = int.tryParse(ageController.text) ?? 0;
-          userModelCurrentInfo!.email = emailController.text;
-        });
-
-        print('User information updated successfully');
-      } else {
-        throw Exception('Current user is null');
-      }
-    } catch (error) {
-      print("Failed to update user information: $error");
-      // Handle error
-    }
   }
 
   @override
@@ -157,66 +133,38 @@ class _ProfilePageState extends State<ProfilePage> {
       body: SingleChildScrollView(
         child: Center(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(30, 30, 30, 50),
+            padding: const EdgeInsets.all(30),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Container(
-                  padding: const EdgeInsets.all(50),
+                  padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     color: Colors.orange[600],
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.person_outline, size: 80),
                 ),
-                const SizedBox(height: 30),
-                // Text form fields for user information
+                const SizedBox(height: 20),
                 TextFormField(
                   controller: firstNameController,
-                  style: const TextStyle(color: Colors.black),
+                  decoration: const InputDecoration(labelText: 'First Name'),
                   readOnly: true,
-                  decoration: const InputDecoration(
-                    labelText: 'First Name',
-                    labelStyle: TextStyle(color: Colors.black),
-                    enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: Colors.black),
-                    ),
-                  ),
                 ),
                 TextFormField(
                   controller: lastNameController,
-                  style: const TextStyle(color: Colors.black),
+                  decoration: const InputDecoration(labelText: 'Last Name'),
                   readOnly: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Last Name',
-                    labelStyle: TextStyle(color: Colors.black),
-                    enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: Colors.black),
-                    ),
-                  ),
                 ),
                 TextFormField(
                   controller: ageController,
-                  style: const TextStyle(color: Colors.black),
+                  decoration: const InputDecoration(labelText: 'Age'),
                   readOnly: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Age',
-                    labelStyle: TextStyle(color: Colors.black),
-                    enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: Colors.black),
-                    ),
-                  ),
                 ),
                 TextFormField(
                   controller: emailController,
-                  style: const TextStyle(color: Colors.black),
+                  decoration: const InputDecoration(labelText: 'Email'),
                   readOnly: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    labelStyle: TextStyle(color: Colors.black),
-                    enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: Colors.black),
-                    ),
-                  ),
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton(
@@ -230,7 +178,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     backgroundColor: Colors.orange[600],
                   ),
                   child: const Text(
-                    'Edit Information',
+                    'Update Information',
                     style: TextStyle(color: Colors.black),
                   ),
                 ),

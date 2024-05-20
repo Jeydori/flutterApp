@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 class UserModel {
   String firstName;
@@ -15,8 +15,8 @@ class UserModel {
     required this.uid,
   });
 
-  factory UserModel.fromSnapshot(DocumentSnapshot snapshot) {
-    Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
+  factory UserModel.fromSnapshot(DataSnapshot snapshot) {
+    Map<String, dynamic> data = snapshot.value as Map<String, dynamic>;
     return UserModel(
       firstName: data['First Name'] ?? '',
       lastName: data['Last Name'] ?? '',

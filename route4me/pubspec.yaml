@@ -40,7 +40,7 @@ dependencies:
   firebase_storage: ^11.7.3
   firebase_messaging: ^14.9.0
   google_sign_in: ^6.2.1
-  cloud_firestore: ^4.15.9
+  firebase_database: ^10.5.5
   google_maps_flutter: ^2.6.0
   geolocator: ^11.0.0
   geocoder2: ^1.4.0

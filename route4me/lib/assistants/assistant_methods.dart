@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
@@ -11,18 +11,30 @@ import 'package:route4me/models/direction_infos.dart';
 import 'package:route4me/models/user_model.dart';
 
 class assistantMethods {
-  static Future<void> readCurrentOnlineUserInfo() async {
+  static Future<UserModel> readCurrentOnlineUserInfo() async {
     try {
       final currentUser = firebaseAuth.currentUser;
       if (currentUser != null) {
-        final userRef =
-            FirebaseFirestore.instance.collection('Users').doc(currentUser.uid);
+        final userRef = FirebaseDatabase.instance
+            .reference()
+            .child('Users')
+            .child(currentUser.uid);
 
-        DocumentSnapshot doc = await userRef.get();
+        DatabaseEvent event = await userRef.once();
+        DataSnapshot snapshot = event.snapshot;
 
-        if (doc.exists) {
-          userModelCurrentInfo = UserModel.fromSnapshot(doc);
-          print('User info retrieved: $userModelCurrentInfo');
+        if (snapshot.value != null) {
+          Map<String, dynamic> data =
+              Map<String, dynamic>.from(snapshot.value as Map);
+          UserModel userModel = UserModel(
+            firstName: data['First Name'] ?? '',
+            lastName: data['Last Name'] ?? '',
+            age: data['Age'] ?? 0,
+            email: data['Email'] ?? '',
+            uid: currentUser.uid,
+          );
+          print('User info retrieved: $userModel');
+          return userModel;
         } else {
           throw Exception('User document does not exist');
         }
@@ -35,15 +47,41 @@ class assistantMethods {
     }
   }
 
+  static Future<void> updateUserInfo(UserModel updatedUserModel) async {
+    try {
+      final currentUser = firebaseAuth.currentUser;
+      if (currentUser != null) {
+        final userRef = FirebaseDatabase.instance
+            .ref()
+            .child('Users')
+            .child(currentUser.uid);
+
+        await userRef.update({
+          'First Name': updatedUserModel.firstName,
+          'Last Name': updatedUserModel.lastName,
+          'Age': updatedUserModel.age,
+          'Email': updatedUserModel.email,
+        });
+
+        print('User information updated successfully');
+      } else {
+        throw Exception('Current user is null');
+      }
+    } catch (error) {
+      print("Failed to update user information: $error");
+      rethrow; // Propagate the error for handling by the caller
+    }
+  }
+
   static Future<String> searchAddressForGeographicCoordinates(
       Position position, context) async {
     String apiURL =
-        "https://maps.googleapis.com/maps/api/geocode/json/latlng=${position.latitude},${position.longitude}&key=$mapKey";
+        "https://maps.googleapis.com/maps/api/geocode/json?latlng=${position.latitude},${position.longitude}&key=$mapKey";
     String humanReadableAddress = "";
 
     var requestResponse = await RequestAssistant.receiveRequest(apiURL);
 
-    if (requestResponse != "Error Occured. Failed. No Response.") {
+    if (requestResponse != "Error Occurred. Failed. No Response.") {
       humanReadableAddress = requestResponse["results"][0]["formatted_address"];
 
       Directions userPickUpAddress = Directions();
@@ -63,10 +101,6 @@ class assistantMethods {
         "https://maps.googleapis.com/maps/api/directions/json?origin=${originPosition.latitude},${originPosition.longitude}&destination=${destinationPosition.latitude},${destinationPosition.longitude}&key=$mapKey";
     var responseDirectionApi = await RequestAssistant.receiveRequest(
         urlOriginToDestinationDirectionDetails);
-
-    // if (responseDirectionApi == "Error Occured. Failed. No Response.") {
-    //   return ;
-    // }
 
     DirectionDetailsInfo directionDetailsInfo = DirectionDetailsInfo();
     directionDetailsInfo.e_points =

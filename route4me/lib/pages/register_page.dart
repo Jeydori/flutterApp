@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:route4me/components/button.dart';
@@ -40,14 +40,16 @@ class _RegisterPageState extends State<RegisterPage> {
     try {
       Future<void> addUserDetails(String firstName, String lastName, int age,
           String email, String uid) async {
-        await FirebaseFirestore.instance.collection("Users").doc(uid).set({
+        DatabaseReference userRef =
+            FirebaseDatabase.instance.reference().child("Users").child(uid);
+        await userRef.set({
           'First Name': firstName,
           'Last Name': lastName,
           'Age': age,
           'Email': email,
           'Uid': uid,
         }).then((_) {
-          print("Document added with ID: $uid");
+          print("User added with ID: $uid");
         }).catchError((error) {
           print("Failed to add user: $error");
         });
