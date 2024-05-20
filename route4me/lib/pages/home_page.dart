@@ -1,14 +1,17 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_geofire/flutter_geofire.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart' hide LocationAccuracy;
 import 'package:provider/provider.dart';
 import 'package:route4me/assistants/assistant_methods.dart';
+import 'package:route4me/assistants/geofire_assistant.dart';
 import 'package:route4me/components/drawer.dart';
 import 'package:route4me/components/progress_dialog.dart';
 import 'package:route4me/global/global.dart';
+import 'package:route4me/models/active_available_drivers.dart';
 import 'package:route4me/pages/search_page.dart';
 import 'package:route4me/services/precise_pickup_location.dart';
 
@@ -87,9 +90,57 @@ class _HomePageState extends State<HomePage> {
     userName = userModelCurrentInfo!.firstName;
     userEmail = userModelCurrentInfo!.email;
 
-    // initializeGeofireListener();
+    initializeGeofireListener();
 
     //assistantMethods.readTripsKeysForOnlineUser(context);
+  }
+
+  initializeGeofireListener() {
+    Geofire.initialize('activeDrivers');
+
+    Geofire.queryAtLocation(
+            userCurrentPosition!.latitude, userCurrentPosition!.longitude, 10)!
+        .listen((map) {
+      print(map);
+
+      if (map != null) {
+        var callBack = map['callBack'];
+
+        switch (callBack) {
+          //whenever any driver become active/online
+          case Geofire.onKeyEntered:
+            ActiveAvailableDrivers activeAvailableDrivers =
+                ActiveAvailableDrivers();
+            activeAvailableDrivers.locationLatitude = map['latitude'];
+            activeAvailableDrivers.locationLongitude = map['longitude'];
+            activeAvailableDrivers.driverId = map['key'];
+            GeofireAssistant.activeAvailableDriversList
+                .add(activeAvailableDrivers);
+            if (activeNearbyDriverKeysLoaded == true) {
+              displayActiveDriversOnUsersMap();
+            }
+            break;
+
+          case Geofire.onKeyExited:
+            ActiveAvailableDrivers activeAvailableDrivers =
+                ActiveAvailableDrivers();
+            GeofireAssistant.deleteOfflineDriverfromList(map['key']);
+            displayActiveDriversOnUsersMap;
+            break;
+
+          case Geofire.onKeyMoved:
+            ActiveAvailableDrivers activeAvailableDrivers =
+                ActiveAvailableDrivers();
+            activeAvailableDrivers.locationLatitude = map['latitude'];
+            activeAvailableDrivers.locationLongitude = map['longitude'];
+            activeAvailableDrivers.driverId = map['key'];
+            GeofireAssistant.updateAvailableDriversLocation(
+                activeAvailableDrivers);
+            displayActiveDriversOnUsersMap;
+            break;
+        }
+      }
+    });
   }
 
   Future<void> drawPolylineFromOriginToDestination() async {
