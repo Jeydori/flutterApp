@@ -121,6 +121,7 @@ class _HomePageState extends State<HomePage> {
             }
             break;
 
+          // whenever any driver become non-active/online
           case Geofire.onKeyExited:
             ActiveAvailableDrivers activeAvailableDrivers =
                 ActiveAvailableDrivers();
@@ -128,6 +129,7 @@ class _HomePageState extends State<HomePage> {
             displayActiveDriversOnUsersMap;
             break;
 
+          //whenever driver moves - update
           case Geofire.onKeyMoved:
             ActiveAvailableDrivers activeAvailableDrivers =
                 ActiveAvailableDrivers();
@@ -138,9 +140,57 @@ class _HomePageState extends State<HomePage> {
                 activeAvailableDrivers);
             displayActiveDriversOnUsersMap;
             break;
+
+          //display those online active drivers on user's map
+          case Geofire.onGeoQueryReady:
+            activeNearbyDriverKeysLoaded = true;
+            displayActiveDriversOnUsersMap;
+            break;
         }
       }
+
+      setState(() {});
     });
+  }
+
+  displayActiveDriversOnUsersMap() {
+    setState(() {
+      markerSet.clear();
+      circleSet.clear();
+
+      Set<Marker> driversMarkerSet = Set<Marker>();
+
+      for (ActiveAvailableDrivers eachDriver
+          in GeofireAssistant.activeAvailableDriversList) {
+        LatLng eachDriverActivePosition =
+            LatLng(eachDriver.locationLatitude!, eachDriver.locationLongitude!);
+
+        Marker marker = Marker(
+          markerId: MarkerId(eachDriver.driverId!),
+          position: eachDriverActivePosition,
+          icon: activeNearbyIcon!,
+          rotation: 360,
+        );
+
+        driversMarkerSet.add(marker);
+      }
+
+      setState(() {
+        markerSet = driversMarkerSet;
+      });
+    });
+  }
+
+  createAvailableDriverIconMarker() {
+    if (activeNearbyIcon == null) {
+      ImageConfiguration imageConfiguration =
+          createLocalImageConfiguration(context, size: Size(2, 2));
+      BitmapDescriptor.fromAssetImage(
+              imageConfiguration, 'images/route4me icon lang.png')
+          .then((value) {
+        activeNearbyIcon = value;
+      });
+    }
   }
 
   Future<void> drawPolylineFromOriginToDestination() async {
@@ -305,6 +355,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    createAvailableDriverIconMarker();
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
