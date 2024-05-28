@@ -96,59 +96,46 @@ class _HomePageState extends State<HomePage> {
   }
 
   initializeGeofireListener() {
-    Geofire.initialize('activeDrivers');
-
+    Geofire.initialize("activeDrivers");
     Geofire.queryAtLocation(
             userCurrentPosition!.latitude, userCurrentPosition!.longitude, 10)!
         .listen((map) {
       print(map);
-
       if (map != null) {
-        var callBack = map['callBack'];
-
+        var callBack = map["callBack"];
         switch (callBack) {
-          //whenever any driver become active/online
           case Geofire.onKeyEntered:
-            ActiveAvailableDrivers activeAvailableDrivers =
+            ActiveAvailableDrivers activeNearByAvailableDrivers =
                 ActiveAvailableDrivers();
-            activeAvailableDrivers.locationLatitude = map['latitude'];
-            activeAvailableDrivers.locationLongitude = map['longitude'];
-            activeAvailableDrivers.driverId = map['key'];
+            activeNearByAvailableDrivers.locationLatitude = map["latitude"];
+            activeNearByAvailableDrivers.locationLongitude = map["longitude"];
+            activeNearByAvailableDrivers.driverId = map["key"];
             GeofireAssistant.activeAvailableDriversList
-                .add(activeAvailableDrivers);
+                .add(activeNearByAvailableDrivers);
             if (activeNearbyDriverKeysLoaded == true) {
               displayActiveDriversOnUsersMap();
             }
             break;
-
-          // whenever any driver become non-active/online
           case Geofire.onKeyExited:
-            ActiveAvailableDrivers activeAvailableDrivers =
-                ActiveAvailableDrivers();
-            GeofireAssistant.deleteOfflineDriverfromList(map['key']);
-            displayActiveDriversOnUsersMap;
+            GeofireAssistant.deleteOfflineDriverfromList(map["key"]);
+            displayActiveDriversOnUsersMap();
             break;
-
-          //whenever driver moves - update
           case Geofire.onKeyMoved:
-            ActiveAvailableDrivers activeAvailableDrivers =
+            ActiveAvailableDrivers activeNearByAvailableDrivers =
                 ActiveAvailableDrivers();
-            activeAvailableDrivers.locationLatitude = map['latitude'];
-            activeAvailableDrivers.locationLongitude = map['longitude'];
-            activeAvailableDrivers.driverId = map['key'];
+            activeNearByAvailableDrivers.locationLatitude = map["latitude"];
+            activeNearByAvailableDrivers.locationLongitude = map["longitude"];
+            activeNearByAvailableDrivers.driverId = map["key"];
             GeofireAssistant.updateAvailableDriversLocation(
-                activeAvailableDrivers);
-            displayActiveDriversOnUsersMap;
+                activeNearByAvailableDrivers);
+            displayActiveDriversOnUsersMap();
             break;
-
-          //display those online active drivers on user's map
           case Geofire.onGeoQueryReady:
             activeNearbyDriverKeysLoaded = true;
-            displayActiveDriversOnUsersMap;
+            displayActiveDriversOnUsersMap();
             break;
         }
       }
-
       setState(() {});
     });
   }
@@ -157,36 +144,30 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       markerSet.clear();
       circleSet.clear();
-
       Set<Marker> driversMarkerSet = Set<Marker>();
-
       for (ActiveAvailableDrivers eachDriver
           in GeofireAssistant.activeAvailableDriversList) {
         LatLng eachDriverActivePosition =
             LatLng(eachDriver.locationLatitude!, eachDriver.locationLongitude!);
-
         Marker marker = Marker(
           markerId: MarkerId(eachDriver.driverId!),
           position: eachDriverActivePosition,
           icon: activeNearbyIcon!,
           rotation: 360,
         );
-
         driversMarkerSet.add(marker);
       }
-
       setState(() {
         markerSet = driversMarkerSet;
       });
     });
   }
 
-  createAvailableDriverIconMarker() {
+  createActiveNearByDriverIconMarker() {
     if (activeNearbyIcon == null) {
       ImageConfiguration imageConfiguration =
-          createLocalImageConfiguration(context, size: Size(2, 2));
-      BitmapDescriptor.fromAssetImage(
-              imageConfiguration, 'images/route4me icon lang.png')
+          createLocalImageConfiguration(context, size: Size(100, 100));
+      BitmapDescriptor.fromAssetImage(imageConfiguration, "lib/images/jeep.png")
           .then((value) {
         activeNearbyIcon = value;
       });
@@ -355,7 +336,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    createAvailableDriverIconMarker();
+    createActiveNearByDriverIconMarker();
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
