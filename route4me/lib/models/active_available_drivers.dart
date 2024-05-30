@@ -1,11 +1,11 @@
 class ActiveAvailableDrivers {
-  String? driverId;
-  double? locationLatitude;
-  double? locationLongitude;
+  String driverId;
+  double locationLatitude;
+  double locationLongitude;
 
   ActiveAvailableDrivers({
-    this.driverId,
-    this.locationLatitude,
-    this.locationLongitude,
+    required this.driverId,
+    required this.locationLatitude,
+    required this.locationLongitude,
   });
 }
