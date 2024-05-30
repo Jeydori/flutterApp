@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_geofire/flutter_geofire.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
@@ -52,18 +53,12 @@ class _HomePageState extends State<HomePage> {
   bool openNavigationDrawer = true;
 
   bool activeNearbyDriverKeysLoaded = false;
-  BitmapDescriptor? activeNearbyIcon;
+  // BitmapDescriptor? activeNearbyIcon;
 
   @override
   void initState() {
     super.initState();
     checkIfLocationPermissionAllowed();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    createActiveNearByDriverIconMarker();
   }
 
   void checkIfLocationPermissionAllowed() async {
@@ -72,6 +67,8 @@ class _HomePageState extends State<HomePage> {
     if (locationPermission == LocationPermission.denied) {
       locationPermission = await Geolocator.requestPermission();
     }
+
+    locateUserPosition();
   }
 
   void locateUserPosition() async {
@@ -91,14 +88,9 @@ class _HomePageState extends State<HomePage> {
               .animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
         }
 
-        String humanReadableAddress =
-            await assistantMethods.searchAddressForGeographicCoordinates(
-                userCurrentPosition!, context);
-        print('This is our address = $humanReadableAddress');
+        print('This is our address = $latLngPosition');
 
-        userName = userModelCurrentInfo?.firstName ?? "Unknown";
-        userEmail = userModelCurrentInfo?.email ?? "Unknown";
-
+        // Initialize GeoFire listener
         initializeGeofireListener();
       } else {
         print("User current position is null.");
@@ -109,31 +101,35 @@ class _HomePageState extends State<HomePage> {
   }
 
   void initializeGeofireListener() {
+    print("Initializing Geofire...");
     Geofire.initialize("activeDrivers");
 
     if (userCurrentPosition != null) {
+      print(
+          "Querying at location: ${userCurrentPosition!.latitude}, ${userCurrentPosition!.longitude}");
       Geofire.queryAtLocation(
         userCurrentPosition!.latitude,
         userCurrentPosition!.longitude,
-        10,
+        100, // You can increase this value to test with a larger radius
       )?.listen((dynamic data) {
-        if (data is Map<String, dynamic>) {
-          var map = data as Map<String, dynamic>;
-          var callBack = map['callBack'] as String?;
+        print(
+            "Geofire data received: $data"); // Print raw data received from Geofire
+
+        if (data is Map<dynamic, dynamic>) {
+          var callBack = data['callBack'] as String?;
+          print("Geofire callback: $callBack");
           switch (callBack) {
             case Geofire.onKeyEntered:
-              handleDriverEntered(map);
+              handleDriverEntered(data);
               break;
             case Geofire.onKeyExited:
-              handleDriverExited(map);
+              handleDriverExited(data);
               break;
             case Geofire.onKeyMoved:
-              handleDriverMoved(map);
+              handleDriverMoved(data);
               break;
             case Geofire.onGeoQueryReady:
               print("GeoQuery is ready.");
-              activeNearbyDriverKeysLoaded = true;
-              displayActiveDriversOnUsersMap();
               break;
             default:
               print("Unknown callback: $callBack");
@@ -149,87 +145,62 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void handleDriverEntered(Map<String, dynamic> map) {
-    var key = map["key"] as String?;
-    var location = map["l"] as List<dynamic>?;
-    if (key != null && location != null && location.length >= 2) {
-      ActiveAvailableDrivers activeNearByAvailableDrivers =
-          ActiveAvailableDrivers(
-        driverId: key,
-        locationLatitude: location[0] as double,
-        locationLongitude: location[1] as double,
+  void handleDriverEntered(Map<dynamic, dynamic> map) {
+    var key = map["key"];
+    var latitude = map["latitude"];
+    var longitude = map["longitude"];
+    print("Driver entered: key=$key, latitude=$latitude, longitude=$longitude");
+
+    if (key != null && latitude != null && longitude != null) {
+      LatLng driverPosition = LatLng(latitude, longitude);
+      Marker marker = Marker(
+        markerId: MarkerId(key),
+        position: driverPosition,
+        icon: BitmapDescriptor.defaultMarker,
       );
-      GeofireAssistant.activeAvailableDriversList
-          .add(activeNearByAvailableDrivers);
-      if (activeNearbyDriverKeysLoaded) {
-        displayActiveDriversOnUsersMap();
-      }
+      setState(() {
+        markerSet.add(marker);
+      });
     } else {
-      print("Error: Missing data in map['key'] or map['l']");
+      print(
+          "Error: Missing data in map['key'], map['latitude'], or map['longitude']");
     }
   }
 
-  void handleDriverExited(Map<String, dynamic> map) {
-    var key = map["key"] as String?;
+  void handleDriverExited(Map<dynamic, dynamic> map) {
+    var key = map["key"];
+    print("Driver exited: key=$key");
+
     if (key != null) {
-      GeofireAssistant.deleteOfflineDriverfromList(key);
-      displayActiveDriversOnUsersMap();
+      setState(() {
+        markerSet.removeWhere((marker) => marker.markerId.value == key);
+      });
     } else {
       print("Error: Missing data in map['key']");
     }
   }
 
-  void handleDriverMoved(Map<String, dynamic> map) {
-    var key = map["key"] as String?;
-    var location = map["l"] as List<dynamic>?;
-    if (key != null && location != null && location.length >= 2) {
-      ActiveAvailableDrivers activeNearByAvailableDrivers =
-          ActiveAvailableDrivers(
-        driverId: key,
-        locationLatitude: location[0] as double,
-        locationLongitude: location[1] as double,
+  void handleDriverMoved(Map<dynamic, dynamic> map) {
+    var key = map["key"];
+    var latitude = map["latitude"];
+    var longitude = map["longitude"];
+    print("Driver moved: key=$key, latitude=$latitude, longitude=$longitude");
+
+    if (key != null && latitude != null && longitude != null) {
+      LatLng driverPosition = LatLng(latitude, longitude);
+      Marker marker = Marker(
+        markerId: MarkerId(key),
+        position: driverPosition,
+        icon: BitmapDescriptor.defaultMarker,
       );
-      GeofireAssistant.updateAvailableDriversLocation(
-          activeNearByAvailableDrivers);
-      displayActiveDriversOnUsersMap();
-    } else {
-      print("Error: Missing data in map['key'] or map['l']");
-    }
-  }
-
-  void createActiveNearByDriverIconMarker() {
-    if (activeNearbyIcon == null) {
-      BitmapDescriptor.fromAssetImage(
-        ImageConfiguration(
-            devicePixelRatio:
-                2.5), // You can adjust the devicePixelRatio if needed
-        'assets/images/jeep.png',
-      ).then((icon) {
-        setState(() {
-          activeNearbyIcon = icon;
-        });
-      }).catchError((e) {
-        print("Error loading jeep.png: $e");
+      setState(() {
+        markerSet.removeWhere((m) => m.markerId.value == key);
+        markerSet.add(marker);
       });
+    } else {
+      print(
+          "Error: Missing data in map['key'], map['latitude'], or map['longitude']");
     }
-  }
-
-  void displayActiveDriversOnUsersMap() {
-    setState(() {
-      markerSet.clear(); // Clear existing markers
-
-      for (var driver in GeofireAssistant.activeAvailableDriversList) {
-        LatLng driverPosition =
-            LatLng(driver.locationLatitude, driver.locationLongitude);
-        Marker marker = Marker(
-          markerId: MarkerId(driver.driverId),
-          position: driverPosition,
-          icon: activeNearbyIcon ??
-              BitmapDescriptor.defaultMarker, // Use the custom icon
-        );
-        markerSet.add(marker); // Add marker to the set
-      }
-    });
   }
 
   Future<void> drawPolylineFromOriginToDestination() async {
@@ -358,7 +329,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    createActiveNearByDriverIconMarker();
+    // createActiveNearByDriverIconMarker();
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
