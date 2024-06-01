@@ -151,10 +151,12 @@ class _HomePageState extends State<HomePage> {
     if (key != null && latitude != null && longitude != null) {
       LatLng driverPosition = LatLng(latitude, longitude);
       Marker marker = Marker(
-        markerId: MarkerId(key),
-        position: driverPosition,
-        icon: BitmapDescriptor.defaultMarker,
-      );
+          markerId: MarkerId(key),
+          position: driverPosition,
+          icon: BitmapDescriptor.defaultMarker,
+          onTap: () {
+            showBottomSheet();
+          });
       setState(() {
         markerSet.add(marker);
       });
@@ -189,6 +191,9 @@ class _HomePageState extends State<HomePage> {
         markerId: MarkerId(key),
         position: driverPosition,
         icon: BitmapDescriptor.defaultMarker,
+        onTap: () {
+          showBottomSheet();
+        },
       );
       setState(() {
         markerSet.removeWhere((m) => m.markerId.value == key);
@@ -198,6 +203,28 @@ class _HomePageState extends State<HomePage> {
       print(
           "Error: Missing data in map['key'], map['latitude'], or map['longitude']");
     }
+  }
+
+  // Function to show bottom sheet
+  void showBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Container(
+          height: 300,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Center(
+            child: Text('Driver Information'),
+          ),
+        );
+      },
+    );
   }
 
   Future<void> drawPolylineFromOriginToDestination() async {
@@ -227,33 +254,31 @@ class _HomePageState extends State<HomePage> {
 
     Navigator.pop(context);
 
-    PolylinePoints pPoints = PolylinePoints();
-    List<PointLatLng> decodePolylinePointsResultList =
-        pPoints.decodePolyline(directionDetailsInfo.e_points!);
-
-    pLineCoordinatedList.clear();
-
-    if (decodePolylinePointsResultList.isNotEmpty) {
-      for (var pointLatLng in decodePolylinePointsResultList) {
-        pLineCoordinatedList
-            .add(LatLng(pointLatLng.latitude, pointLatLng.longitude));
-      }
-    }
-
     polylineSet.clear();
 
     setState(() {
-      Polyline polyline = Polyline(
-        color: Colors.blue,
-        polylineId: const PolylineId('PolylineID'),
-        jointType: JointType.round,
-        points: pLineCoordinatedList,
-        startCap: Cap.roundCap,
-        endCap: Cap.roundCap,
-        geodesic: true,
-        width: 5,
-      );
-      polylineSet.add(polyline);
+      for (var step in directionDetailsInfo.steps!) {
+        PolylinePoints pPoints = PolylinePoints();
+        List<PointLatLng> polylinePoints =
+            pPoints.decodePolyline(step["polyline"]["points"]);
+
+        List<LatLng> latLngList = [];
+        if (polylinePoints.isNotEmpty) {
+          for (var pointLatLng in polylinePoints) {
+            latLngList.add(LatLng(pointLatLng.latitude, pointLatLng.longitude));
+          }
+        }
+
+        bool isWalking = step["travel_mode"] == "WALKING";
+        Polyline polyline = Polyline(
+          color: isWalking ? Colors.green : Colors.blue,
+          polylineId: PolylineId(step["start_location"].toString()),
+          points: latLngList,
+          width: isWalking ? 2 : 5,
+          patterns: isWalking ? [PatternItem.dot] : [],
+        );
+        polylineSet.add(polyline);
+      }
     });
 
     LatLngBounds boundsLatLng;
@@ -284,7 +309,6 @@ class _HomePageState extends State<HomePage> {
       infoWindow:
           InfoWindow(title: originPosition.locationName, snippet: "Origin"),
       position: originLatLng,
-      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
     );
 
     Marker destinationMaker = Marker(
@@ -292,7 +316,7 @@ class _HomePageState extends State<HomePage> {
       infoWindow: InfoWindow(
           title: destinationPosition.locationName, snippet: "Destination"),
       position: destinationLatLng,
-      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
     );
 
     setState(() {
@@ -510,7 +534,7 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                   ),
                                   child: const Text(
-                                    'Change Pickup',
+                                    'Set Pickup',
                                     style: TextStyle(
                                       color: Colors.black,
                                     ),
@@ -522,7 +546,23 @@ class _HomePageState extends State<HomePage> {
                               ),
                               Flexible(
                                 child: ElevatedButton(
-                                  onPressed: () {},
+                                  onPressed: () async {
+                                    // Go to search page
+                                    var responseFromSearchPage =
+                                        await Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (c) =>
+                                                    const SearchPage()));
+
+                                    if (responseFromSearchPage ==
+                                        "obtainedDestination") {
+                                      setState(() {
+                                        openNavigationDrawer = false;
+                                      });
+                                    }
+                                    await drawPolylineFromOriginToDestination();
+                                  },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.amber[400],
                                     textStyle: const TextStyle(
@@ -534,7 +574,7 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                   ),
                                   child: const Text(
-                                    'Show PUVs',
+                                    'Set Destination',
                                     style: TextStyle(
                                       color: Colors.black,
                                     ),

@@ -4,6 +4,7 @@ class DirectionDetailsInfo {
   String? e_points;
   String? distance_text;
   String? duration_text;
+  List<dynamic>? steps;
 
   DirectionDetailsInfo({
     this.distance_text,
@@ -11,5 +12,6 @@ class DirectionDetailsInfo {
     this.e_points,
     this.distance_value,
     this.duration_value,
+    this.steps,
   });
 }
