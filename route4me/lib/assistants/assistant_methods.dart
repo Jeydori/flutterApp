@@ -95,27 +95,65 @@ class assistantMethods {
     return humanReadableAddress;
   }
 
-  static Future<DirectionDetailsInfo> obtainOriginToDestinationDirectionDetails(
-      LatLng originPosition, LatLng destinationPosition) async {
+  static Future<List<DirectionDetailsInfo>>
+      obtainOriginToDestinationDirectionDetails(
+          LatLng originPosition, LatLng destinationPosition) async {
     String urlOriginToDestinationDirectionDetails =
-        "https://maps.googleapis.com/maps/api/directions/json?origin=${originPosition.latitude},${originPosition.longitude}&destination=${destinationPosition.latitude},${destinationPosition.longitude}&mode=transit&key=$mapKey";
+        "https://maps.googleapis.com/maps/api/directions/json?origin=${originPosition.latitude},${originPosition.longitude}&destination=${destinationPosition.latitude},${destinationPosition.longitude}&mode=transit&alternatives=true&key=$mapKey";
     var responseDirectionApi = await RequestAssistant.receiveRequest(
         urlOriginToDestinationDirectionDetails);
 
-    DirectionDetailsInfo directionDetailsInfo = DirectionDetailsInfo();
-    directionDetailsInfo.e_points =
-        responseDirectionApi["routes"][0]["overview_polyline"]["points"];
-    directionDetailsInfo.distance_text =
-        responseDirectionApi["routes"][0]["legs"][0]["distance"]["text"];
-    directionDetailsInfo.distance_value =
-        responseDirectionApi["routes"][0]["legs"][0]["distance"]["value"];
-    directionDetailsInfo.duration_text =
-        responseDirectionApi["routes"][0]["legs"][0]["duration"]["text"];
-    directionDetailsInfo.duration_value =
-        responseDirectionApi["routes"][0]["legs"][0]["duration"]["value"];
-    directionDetailsInfo.steps =
-        responseDirectionApi["routes"][0]["legs"][0]["steps"];
+    if (responseDirectionApi == "failed") {
+      return [];
+    }
 
-    return directionDetailsInfo;
+    List<DirectionDetailsInfo> directionsList = [];
+
+    for (var route in responseDirectionApi["routes"]) {
+      DirectionDetailsInfo directionDetailsInfo = DirectionDetailsInfo();
+      directionDetailsInfo.e_points = route["overview_polyline"]["points"];
+      directionDetailsInfo.distance_text = route["legs"][0]["distance"]["text"];
+      directionDetailsInfo.distance_value =
+          route["legs"][0]["distance"]["value"];
+      directionDetailsInfo.duration_text = route["legs"][0]["duration"]["text"];
+      directionDetailsInfo.duration_value =
+          route["legs"][0]["duration"]["value"];
+      if (route["fare"] != null) {
+        directionDetailsInfo.fare = route["fare"]["text"];
+      }
+      directionDetailsInfo.steps = route["legs"][0]["steps"];
+
+      // Parse transit steps
+      List<TransitInfo> transitSteps = [];
+      for (var step in directionDetailsInfo.steps!) {
+        if (step["travel_mode"] == "TRANSIT") {
+          TransitInfo transitInfo = TransitInfo(
+            vehicleType: step["transit_details"]["line"]["vehicle"]["type"],
+            lineName: step["transit_details"]["line"]["short_name"] ??
+                step["transit_details"]["line"]["name"],
+            agencyName: step["transit_details"]["line"]["agencies"][0]["name"],
+            departureStop: step["transit_details"]["departure_stop"]["name"],
+            arrivalStop: step["transit_details"]["arrival_stop"]["name"],
+            departureTime: step["transit_details"]["departure_time"]["text"],
+            arrivalTime: step["transit_details"]["arrival_time"]["text"],
+            departureLocation: LatLng(
+              step["transit_details"]["departure_stop"]["location"]["lat"],
+              step["transit_details"]["departure_stop"]["location"]["lng"],
+            ),
+            arrivalLocation: LatLng(
+              step["transit_details"]["arrival_stop"]["location"]["lat"],
+              step["transit_details"]["arrival_stop"]["location"]["lng"],
+            ),
+            numberOfStops: step["transit_details"]["num_stops"],
+          );
+          transitSteps.add(transitInfo);
+        }
+      }
+      directionDetailsInfo.transitSteps = transitSteps;
+
+      directionsList.add(directionDetailsInfo);
+    }
+
+    return directionsList;
   }
 }

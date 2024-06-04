@@ -9,6 +9,7 @@ import 'package:route4me/global/global.dart';
 import 'package:provider/provider.dart';
 import 'package:route4me/info handler/app_info.dart';
 import 'package:route4me/components/progress_dialog.dart';
+import 'package:route4me/models/direction_infos.dart';
 import 'package:route4me/pages/search_page.dart';
 import 'package:route4me/services/precise_pickup_location.dart';
 import 'package:route4me/components/drawer.dart';
@@ -227,6 +228,204 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  void showRouteSelectionSheet(
+      BuildContext context, List<DirectionDetailsInfo> directionsList) {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Container(
+          height: 300,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            children: [
+              Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Center(
+                  child: Text('Choose a Route',
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                ),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: directionsList.length,
+                  itemBuilder: (context, index) {
+                    var directionDetailsInfo = directionsList[index];
+                    return ListTile(
+                      title: Text('Route ${index + 1}'),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                              'Distance: ${directionDetailsInfo.distance_text}'),
+                          Text(
+                              'Duration: ${directionDetailsInfo.duration_text}'),
+                          if (directionDetailsInfo.fare != null)
+                            Text(
+                                'Estimated Fare: ${directionDetailsInfo.fare}'),
+                        ],
+                      ),
+                      onTap: () {
+                        Navigator.pop(
+                            context); // Close this sheet and open the detailed route sheet
+                        _drawSelectedRoute(
+                            context, directionDetailsInfo, directionsList);
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _drawSelectedRoute(
+      BuildContext context,
+      DirectionDetailsInfo directionDetailsInfo,
+      List<DirectionDetailsInfo> directionsList) async {
+    setState(() {
+      tripDirectionDetailsInfo = directionDetailsInfo;
+    });
+
+    polylineSet.clear();
+    circleSet.clear();
+
+    PolylinePoints polylinePoints = PolylinePoints();
+    List<PointLatLng> decodedPolylinePoints =
+        polylinePoints.decodePolyline(directionDetailsInfo.e_points!);
+    List<LatLng> polylineCoordinates = decodedPolylinePoints
+        .map((point) => LatLng(point.latitude, point.longitude))
+        .toList();
+
+    LatLngBounds boundsLatLng = _calculateLatLngBounds(polylineCoordinates);
+    newGoogleMapController!
+        .animateCamera(CameraUpdate.newLatLngBounds(boundsLatLng, 70));
+
+    for (var step in directionDetailsInfo.steps!) {
+      List<PointLatLng> stepPolylinePoints =
+          PolylinePoints().decodePolyline(step["polyline"]["points"]);
+      List<LatLng> stepCoordinates = stepPolylinePoints
+          .map((point) => LatLng(point.latitude, point.longitude))
+          .toList();
+      bool isWalking = step["travel_mode"] == "WALKING";
+      polylineSet.add(Polyline(
+        polylineId: PolylineId('${step["start_location"].toString()}'),
+        points: stepCoordinates,
+        color: isWalking ? Colors.orange : Colors.orange,
+        width: 4,
+        patterns: isWalking ? [PatternItem.dot] : [],
+      ));
+    }
+
+    // Define custom Circle indicators for departure and arrival
+    for (var transitStep in directionDetailsInfo.transitSteps!) {
+      Circle departureCircle = Circle(
+        circleId: CircleId('departure_${transitStep.departureStop}'),
+        center: transitStep.departureLocation!,
+        radius: 60,
+        fillColor: Colors.white,
+        strokeWidth: 1,
+        strokeColor: Colors.black,
+      );
+
+      Circle arrivalCircle = Circle(
+        circleId: CircleId('arrival_${transitStep.arrivalStop}'),
+        center: transitStep.arrivalLocation!,
+        radius: 60,
+        fillColor: Colors.white,
+        strokeWidth: 1,
+        strokeColor: Colors.black,
+      );
+
+      setState(() {
+        circleSet.add(departureCircle);
+        circleSet.add(arrivalCircle);
+      });
+    }
+
+    // Optional: Mark the starting and ending locations more prominently
+    if (polylineCoordinates.isNotEmpty) {
+      circleSet.add(Circle(
+        circleId: CircleId('end'),
+        center: polylineCoordinates.last,
+        radius: 80,
+        fillColor: Colors.red,
+        strokeWidth: 1,
+        strokeColor: Colors.white,
+      ));
+    }
+
+    setState(() {}); // Trigger a UI update if needed.
+
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return Container(
+          height: 300,
+          child: Column(
+            children: [
+              Align(
+                alignment: Alignment.topLeft,
+                child: IconButton(
+                  icon: Icon(Icons.arrow_back),
+                  onPressed: () {
+                    Navigator.pop(context); // Close this details sheet
+                    showRouteSelectionSheet(
+                        context, directionsList); // Reopen the selection sheet
+                  },
+                ),
+              ),
+              Center(
+                child: Text('Route Information'),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Distance: ${directionDetailsInfo.distance_text}'),
+                    Text('Duration: ${directionDetailsInfo.duration_text}'),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: directionDetailsInfo.transitSteps!.length,
+                  itemBuilder: (context, index) {
+                    var transitStep = directionDetailsInfo.transitSteps![index];
+                    return ListTile(
+                      title: Text(
+                          '${transitStep.vehicleType} - ${transitStep.lineName}'),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Agency: ${transitStep.agencyName}'),
+                          Text(
+                              'From: ${transitStep.departureStop} at ${transitStep.departureTime}'),
+                          Text(
+                              'To: ${transitStep.arrivalStop} at ${transitStep.arrivalTime}'),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> drawPolylineFromOriginToDestination() async {
     var originPosition =
         Provider.of<appInfo>(context, listen: false).userPickUpLocation;
@@ -244,108 +443,37 @@ class _HomePageState extends State<HomePage> {
           ProgressDialog(message: "Please wait..."),
     );
 
-    var directionDetailsInfo =
+    var directionsList =
         await assistantMethods.obtainOriginToDestinationDirectionDetails(
             originLatLng, destinationLatLng);
 
-    setState(() {
-      tripDirectionDetailsInfo = directionDetailsInfo;
-    });
-
     Navigator.pop(context);
 
-    polylineSet.clear();
-
-    setState(() {
-      for (var step in directionDetailsInfo.steps!) {
-        PolylinePoints pPoints = PolylinePoints();
-        List<PointLatLng> polylinePoints =
-            pPoints.decodePolyline(step["polyline"]["points"]);
-
-        List<LatLng> latLngList = [];
-        if (polylinePoints.isNotEmpty) {
-          for (var pointLatLng in polylinePoints) {
-            latLngList.add(LatLng(pointLatLng.latitude, pointLatLng.longitude));
-          }
-        }
-
-        bool isWalking = step["travel_mode"] == "WALKING";
-        Polyline polyline = Polyline(
-          color: isWalking ? Colors.green : Colors.blue,
-          polylineId: PolylineId(step["start_location"].toString()),
-          points: latLngList,
-          width: isWalking ? 2 : 5,
-          patterns: isWalking ? [PatternItem.dot] : [],
-        );
-        polylineSet.add(polyline);
-      }
-    });
-
-    LatLngBounds boundsLatLng;
-    if (originLatLng.latitude > destinationLatLng.latitude &&
-        originLatLng.longitude > destinationLatLng.longitude) {
-      boundsLatLng =
-          LatLngBounds(southwest: destinationLatLng, northeast: originLatLng);
-    } else if (originLatLng.longitude > destinationLatLng.longitude) {
-      boundsLatLng = LatLngBounds(
-        southwest: LatLng(originLatLng.latitude, destinationLatLng.longitude),
-        northeast: LatLng(destinationLatLng.latitude, originLatLng.longitude),
-      );
-    } else if (originLatLng.latitude > destinationLatLng.latitude) {
-      boundsLatLng = LatLngBounds(
-        southwest: LatLng(destinationLatLng.latitude, originLatLng.longitude),
-        northeast: LatLng(originLatLng.latitude, destinationLatLng.longitude),
-      );
-    } else {
-      boundsLatLng =
-          LatLngBounds(southwest: originLatLng, northeast: destinationLatLng);
+    if (directionsList.isEmpty) {
+      print("No routes found");
+      return;
     }
 
-    newGoogleMapController!
-        .animateCamera(CameraUpdate.newLatLngBounds(boundsLatLng, 65));
+    showRouteSelectionSheet(context, directionsList);
+  }
 
-    Marker originMaker = Marker(
-      markerId: const MarkerId("originID"),
-      infoWindow:
-          InfoWindow(title: originPosition.locationName, snippet: "Origin"),
-      position: originLatLng,
+  LatLngBounds _calculateLatLngBounds(List<LatLng> polylineCoordinates) {
+    double minLat = polylineCoordinates.first.latitude;
+    double maxLat = polylineCoordinates.first.latitude;
+    double minLng = polylineCoordinates.first.longitude;
+    double maxLng = polylineCoordinates.first.longitude;
+
+    for (var coordinate in polylineCoordinates) {
+      if (coordinate.latitude < minLat) minLat = coordinate.latitude;
+      if (coordinate.latitude > maxLat) maxLat = coordinate.latitude;
+      if (coordinate.longitude < minLng) minLng = coordinate.longitude;
+      if (coordinate.longitude > maxLng) maxLng = coordinate.longitude;
+    }
+
+    return LatLngBounds(
+      southwest: LatLng(minLat, minLng),
+      northeast: LatLng(maxLat, maxLng),
     );
-
-    Marker destinationMaker = Marker(
-      markerId: const MarkerId("destinationID"),
-      infoWindow: InfoWindow(
-          title: destinationPosition.locationName, snippet: "Destination"),
-      position: destinationLatLng,
-      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
-    );
-
-    setState(() {
-      markerSet.add(originMaker);
-      markerSet.add(destinationMaker);
-    });
-
-    Circle originCircle = Circle(
-      circleId: const CircleId("originID"),
-      fillColor: Colors.green,
-      radius: 12,
-      strokeWidth: 3,
-      strokeColor: Colors.white,
-      center: originLatLng,
-    );
-
-    Circle destinationCircle = Circle(
-      circleId: const CircleId("destinationID"),
-      fillColor: Colors.red,
-      radius: 12,
-      strokeWidth: 3,
-      strokeColor: Colors.white,
-      center: destinationLatLng,
-    );
-
-    setState(() {
-      circleSet.add(originCircle);
-      circleSet.add(destinationCircle);
-    });
   }
 
   @override
@@ -475,29 +603,31 @@ class _HomePageState extends State<HomePage> {
                                           color: Colors.black,
                                         ),
                                         const SizedBox(width: 10),
-                                        Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            const Text(
-                                              "Where to",
-                                              style: TextStyle(
-                                                color: Colors.black,
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.bold,
+                                        Flexible(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              const Text(
+                                                "Where to",
+                                                style: TextStyle(
+                                                  color: Colors.black,
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
                                               ),
-                                            ),
-                                            Text(
-                                              Provider.of<appInfo>(context)
-                                                          .userDestinationLocation !=
-                                                      null
-                                                  ? Provider.of<appInfo>(
-                                                          context)
-                                                      .userDestinationLocation!
-                                                      .locationName!
-                                                  : "...",
-                                            )
-                                          ],
+                                              Text(
+                                                Provider.of<appInfo>(context)
+                                                            .userDestinationLocation !=
+                                                        null
+                                                    ? Provider.of<appInfo>(
+                                                            context)
+                                                        .userDestinationLocation!
+                                                        .locationName!
+                                                    : "...",
+                                              )
+                                            ],
+                                          ),
                                         )
                                       ],
                                     ),
