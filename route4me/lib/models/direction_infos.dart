@@ -27,16 +27,16 @@ class DirectionDetailsInfo {
 }
 
 class TransitInfo {
-  String? vehicleType;
-  String? lineName;
-  String? agencyName;
-  String? departureStop;
-  String? arrivalStop;
-  String? departureTime;
-  String? arrivalTime;
-  LatLng? departureLocation;
-  LatLng? arrivalLocation;
-  int? numberOfStops;
+  final String? vehicleType;
+  final String? lineName;
+  final String? agencyName;
+  final String? departureStop;
+  final String? arrivalStop;
+  final String? departureTime;
+  final String? arrivalTime;
+  final LatLng departureLocation;
+  final LatLng? arrivalLocation;
+  final int? numberOfStops;
 
   TransitInfo({
     this.vehicleType,
@@ -46,7 +46,7 @@ class TransitInfo {
     this.arrivalStop,
     this.departureTime,
     this.arrivalTime,
-    this.departureLocation,
+    required this.departureLocation,
     this.arrivalLocation,
     this.numberOfStops,
   });

@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_geofire/flutter_geofire.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geolocator/geolocator.dart';
@@ -25,8 +27,8 @@ class _HomePageState extends State<HomePage> {
   final Completer<GoogleMapController> _controllerGoogleMap = Completer();
   GoogleMapController? newGoogleMapController;
 
-  static const CameraPosition _kGooglePlex = CameraPosition(
-    target: LatLng(37.42796133580664, -122.085749655962),
+  static const CameraPosition Manila = CameraPosition(
+    target: LatLng(14.599512, 120.984222),
     zoom: 14.4746,
   );
 
@@ -51,6 +53,8 @@ class _HomePageState extends State<HomePage> {
   bool openNavigationDrawer = true;
 
   bool activeNearbyDriverKeysLoaded = false;
+  Map<String, LatLng> activeDrivers = {};
+
   // BitmapDescriptor? activeNearbyIcon;
 
   @override
@@ -152,14 +156,29 @@ class _HomePageState extends State<HomePage> {
     if (key != null && latitude != null && longitude != null) {
       LatLng driverPosition = LatLng(latitude, longitude);
       Marker marker = Marker(
-          markerId: MarkerId(key),
-          position: driverPosition,
-          icon: BitmapDescriptor.defaultMarker,
-          onTap: () {
-            showBottomSheet();
-          });
+        markerId: MarkerId(key),
+        position: driverPosition,
+        icon: BitmapDescriptor.defaultMarker,
+        onTap: () {
+          showCustomBottomSheet(
+            barrierColor: Colors.transparent,
+            context: context,
+            title: "Driver Information",
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Key: $key"),
+                Text("Latitude: $latitude"),
+                Text("Longitude: $longitude"),
+              ],
+            ),
+          );
+        },
+      );
       setState(() {
         markerSet.add(marker);
+        activeDrivers[key] = driverPosition; // Update active drivers map
       });
     } else {
       print(
@@ -174,6 +193,7 @@ class _HomePageState extends State<HomePage> {
     if (key != null) {
       setState(() {
         markerSet.removeWhere((marker) => marker.markerId.value == key);
+        activeDrivers.remove(key); // Remove from active drivers map
       });
     } else {
       print("Error: Missing data in map['key']");
@@ -193,12 +213,28 @@ class _HomePageState extends State<HomePage> {
         position: driverPosition,
         icon: BitmapDescriptor.defaultMarker,
         onTap: () {
-          showBottomSheet();
+          // Call the dynamic bottom sheet with updated location information
+          showCustomBottomSheet(
+            barrierColor: Colors.transparent,
+            context: context,
+            title: "Driver Moved",
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Driver Key: $key"),
+                Text("New Latitude: $latitude"),
+                Text("New Longitude: $longitude"),
+              ],
+            ),
+          );
         },
       );
       setState(() {
         markerSet.removeWhere((m) => m.markerId.value == key);
         markerSet.add(marker);
+        activeDrivers[key] =
+            driverPosition; // Update position in activeDrivers map
       });
     } else {
       print(
@@ -206,23 +242,64 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // Function to show bottom sheet
-  void showBottomSheet() {
+  void showCustomBottomSheet({
+    required BuildContext context,
+    required String title,
+    required Widget content,
+    required Color barrierColor,
+  }) {
     showModalBottomSheet(
+      isScrollControlled: true,
+      barrierColor: Colors.transparent, // Ensures no darkening of background
       context: context,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return Container(
-          height: 300,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          child: Center(
-            child: Text('Driver Information'),
-          ),
+      builder: (BuildContext ctx) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.4, // Initial size of the bottom sheet when opened
+          minChildSize:
+              0.2, // Minimum size of the bottom sheet when dragged down
+          maxChildSize: 0.9, // Maximum size of the bottom sheet when dragged up
+          expand: false,
+          builder: (BuildContext context, ScrollController scrollController) {
+            return Container(
+              padding: EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    blurRadius: 10,
+                    color: Colors.black26,
+                    spreadRadius: 5,
+                  ),
+                ],
+              ),
+              child: ListView(
+                controller: scrollController,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 5,
+                      margin: EdgeInsets.only(bottom: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                  Text(
+                    title,
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 20),
+                  content,
+                ],
+              ),
+            );
+          },
         );
       },
     );
@@ -231,51 +308,50 @@ class _HomePageState extends State<HomePage> {
   void showRouteSelectionSheet(
       BuildContext context, List<DirectionDetailsInfo> directionsList) {
     showModalBottomSheet(
+      barrierColor: Colors.transparent,
       context: context,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
       ),
-      builder: (context) {
+      builder: (BuildContext ctx) {
         return Container(
-          height: 300,
+          padding: EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
           ),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Center(
-                  child: Text('Choose a Route',
-                      style:
-                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 5,
+                  margin: EdgeInsets.symmetric(vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
               ),
+              Text(
+                "Choose a Route",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 20),
               Expanded(
                 child: ListView.builder(
                   itemCount: directionsList.length,
-                  itemBuilder: (context, index) {
-                    var directionDetailsInfo = directionsList[index];
+                  itemBuilder: (ctx, index) {
+                    var info = directionsList[index];
                     return ListTile(
                       title: Text('Route ${index + 1}'),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                              'Distance: ${directionDetailsInfo.distance_text}'),
-                          Text(
-                              'Duration: ${directionDetailsInfo.duration_text}'),
-                          if (directionDetailsInfo.fare != null)
-                            Text(
-                                'Estimated Fare: ${directionDetailsInfo.fare}'),
-                        ],
-                      ),
+                      subtitle: Text(
+                          'Distance: ${info.distance_text}, Duration: ${info.duration_text}'),
                       onTap: () {
-                        Navigator.pop(
-                            context); // Close this sheet and open the detailed route sheet
-                        _drawSelectedRoute(
-                            context, directionDetailsInfo, directionsList);
+                        Navigator.pop(ctx); // Close route selection sheet
+                        _drawSelectedRoute(context, info, directionsList);
                       },
                     );
                   },
@@ -294,11 +370,11 @@ class _HomePageState extends State<HomePage> {
       List<DirectionDetailsInfo> directionsList) async {
     setState(() {
       tripDirectionDetailsInfo = directionDetailsInfo;
+      polylineSet.clear(); // Clear any existing polylines
+      circleSet.clear(); // Clear any existing circles
     });
 
-    polylineSet.clear();
-    circleSet.clear();
-
+    // Decode and draw the route polyline
     PolylinePoints polylinePoints = PolylinePoints();
     List<PointLatLng> decodedPolylinePoints =
         polylinePoints.decodePolyline(directionDetailsInfo.e_points!);
@@ -306,11 +382,78 @@ class _HomePageState extends State<HomePage> {
         .map((point) => LatLng(point.latitude, point.longitude))
         .toList();
 
+    // Set map bounds around the new polyline
     LatLngBounds boundsLatLng = _calculateLatLngBounds(polylineCoordinates);
     newGoogleMapController!
         .animateCamera(CameraUpdate.newLatLngBounds(boundsLatLng, 70));
 
-    for (var step in directionDetailsInfo.steps!) {
+    // Adding start and end circles for the route
+    _addStartAndEndCircles(polylineCoordinates);
+
+    // Add steps to the map (this draws the detailed route polyline)
+    _addStepsToMap(directionDetailsInfo.steps!);
+
+    // Add transit steps circles to the map (visualizing stops)
+    _addTransitStepsCircles(directionDetailsInfo.transitSteps!);
+
+    LatLng? nearestDriverPosition = getNearestDriverPosition();
+    if (nearestDriverPosition != null) {
+      LatLng firstDeparturePosition =
+          directionDetailsInfo.transitSteps!.first.departureLocation;
+
+      // Fetch traffic info from the nearest driver to the first departure position
+      DirectionDetailsInfo? trafficInfo =
+          await assistantMethods.fetchDriverToDepartureDetails(
+              nearestDriverPosition, firstDeparturePosition);
+
+      // Update UI with route info and optionally traffic info
+      if (trafficInfo != null) {
+        drawDriverToDeparturePolyline(
+            nearestDriverPosition, firstDeparturePosition, trafficInfo);
+      }
+
+      // Display route info on a bottom sheet
+      _showRouteInfoBottomSheet(
+          context, directionDetailsInfo, directionsList, trafficInfo);
+    } else {
+      // Handle the case when no nearest driver is found
+      print("No nearest driver found");
+    }
+
+    setState(() {}); // Trigger a UI update to refresh the map with new elements
+  }
+
+  void _addStartAndEndCircles(List<LatLng> polylineCoordinates) {
+    if (polylineCoordinates.isNotEmpty) {
+      // Start Circle
+      Circle startCircle = Circle(
+        circleId: CircleId('start_circle'),
+        center: polylineCoordinates.first,
+        radius: 100,
+        fillColor: Colors.green,
+        strokeWidth: 1,
+        strokeColor: Colors.white,
+      );
+
+      // End Circle
+      Circle endCircle = Circle(
+        circleId: CircleId('end_circle'),
+        center: polylineCoordinates.last,
+        radius: 100,
+        fillColor: Colors.red,
+        strokeWidth: 1,
+        strokeColor: Colors.white,
+      );
+
+      setState(() {
+        circleSet.add(startCircle);
+        circleSet.add(endCircle);
+      });
+    }
+  }
+
+  void _addStepsToMap(List<dynamic> steps) {
+    for (var step in steps) {
       List<PointLatLng> stepPolylinePoints =
           PolylinePoints().decodePolyline(step["polyline"]["points"]);
       List<LatLng> stepCoordinates = stepPolylinePoints
@@ -325,9 +468,10 @@ class _HomePageState extends State<HomePage> {
         patterns: isWalking ? [PatternItem.dot] : [],
       ));
     }
+  }
 
-    // Define custom Circle indicators for departure and arrival
-    for (var transitStep in directionDetailsInfo.transitSteps!) {
+  void _addTransitStepsCircles(List<dynamic> transitSteps) {
+    for (var transitStep in transitSteps) {
       Circle departureCircle = Circle(
         circleId: CircleId('departure_${transitStep.departureStop}'),
         center: transitStep.departureLocation!,
@@ -351,79 +495,132 @@ class _HomePageState extends State<HomePage> {
         circleSet.add(arrivalCircle);
       });
     }
+  }
 
-    // Optional: Mark the starting and ending locations more prominently
-    if (polylineCoordinates.isNotEmpty) {
-      circleSet.add(Circle(
-        circleId: CircleId('end'),
-        center: polylineCoordinates.last,
-        radius: 80,
-        fillColor: Colors.red,
-        strokeWidth: 1,
-        strokeColor: Colors.white,
-      ));
+  void _showRouteInfoBottomSheet(
+      BuildContext context,
+      DirectionDetailsInfo directionDetailsInfo,
+      List<DirectionDetailsInfo> directionsList,
+      DirectionDetailsInfo? trafficInfo) {
+    showCustomBottomSheet(
+      barrierColor: Colors.transparent,
+      context: context,
+      title: "Route Information",
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(height: 10),
+            Text('Distance: ${directionDetailsInfo.distance_text ?? "N/A"}',
+                style: TextStyle(fontSize: 16)),
+            Text('Duration: ${directionDetailsInfo.duration_text ?? "N/A"}',
+                style: TextStyle(fontSize: 16)),
+            if (directionDetailsInfo.fare != null)
+              Text('Estimated Fare: ${directionDetailsInfo.fare}',
+                  style: TextStyle(fontSize: 16)),
+            SizedBox(height: 10),
+            if (trafficInfo != null)
+              Text(
+                  'Time from driver to first stop: ${trafficInfo.duration_text}',
+                  style: TextStyle(fontSize: 16)),
+            SizedBox(height: 10),
+            Text('Detailed Steps:',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            ListView.builder(
+              shrinkWrap: true,
+              physics:
+                  AlwaysScrollableScrollPhysics(), // to disable ListView's scrolling
+              itemCount: directionDetailsInfo.steps?.length ?? 0,
+              itemBuilder: (context, index) {
+                var step = directionDetailsInfo.steps![index];
+                String stepTitle =
+                    step["travel_mode"] == "WALKING" ? "Walk" : "Transit";
+                String stepDetails = stepTitle == "Walk"
+                    ? 'Walk ${step["distance"]["text"]} - ${step["duration"]["text"]}'
+                    : '${step["transit_details"]["line"]["vehicle"]["name"]} from ${step["transit_details"]["departure_stop"]["name"]} to ${step["transit_details"]["arrival_stop"]["name"]}';
+
+                return ListTile(
+                  leading: Icon(step["travel_mode"] == "WALKING"
+                      ? Icons.directions_walk
+                      : Icons.directions_bus),
+                  title: Text(stepTitle, style: TextStyle(fontSize: 16)),
+                  subtitle: Text(stepDetails,
+                      maxLines: 2, overflow: TextOverflow.ellipsis),
+                );
+              },
+            ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () {
+                  Navigator.pop(context); // Close this details sheet
+                  showRouteSelectionSheet(
+                      context, directionsList); // Show route options again
+                },
+                child: Text("Choose another route",
+                    style: TextStyle(
+                        color: Theme.of(context).primaryColor,
+                        fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void drawDriverToDeparturePolyline(
+      LatLng start, LatLng end, DirectionDetailsInfo trafficInfo) {
+    // Decode polyline from the traffic info and add it to the map
+    List<PointLatLng> polylinePoints =
+        PolylinePoints().decodePolyline(trafficInfo.e_points!);
+    List<LatLng> polylineCoordinates = polylinePoints
+        .map((point) => LatLng(point.latitude, point.longitude))
+        .toList();
+
+    Polyline driverRoute = Polyline(
+      polylineId: PolylineId("driverRoute"),
+      points: polylineCoordinates,
+      color: Colors.yellow.shade600, // Color for driver route
+      width: 5,
+    );
+
+    setState(() {
+      polylineSet.add(driverRoute);
+    });
+  }
+
+  LatLng? getNearestDriverPosition() {
+    if (userCurrentPosition == null)
+      return null; // Early return if position is null
+
+    double minDistance = double.maxFinite;
+    LatLng? nearestDriver;
+
+    for (var entry in activeDrivers.entries) {
+      double distance = calculateDistance(
+        userCurrentPosition!.latitude,
+        userCurrentPosition!.longitude,
+        entry.value.latitude,
+        entry.value.longitude,
+      );
+      if (distance < minDistance) {
+        minDistance = distance;
+        nearestDriver = entry.value;
+      }
     }
 
-    setState(() {}); // Trigger a UI update if needed.
+    return nearestDriver;
+  }
 
-    showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        return Container(
-          height: 300,
-          child: Column(
-            children: [
-              Align(
-                alignment: Alignment.topLeft,
-                child: IconButton(
-                  icon: Icon(Icons.arrow_back),
-                  onPressed: () {
-                    Navigator.pop(context); // Close this details sheet
-                    showRouteSelectionSheet(
-                        context, directionsList); // Reopen the selection sheet
-                  },
-                ),
-              ),
-              Center(
-                child: Text('Route Information'),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Distance: ${directionDetailsInfo.distance_text}'),
-                    Text('Duration: ${directionDetailsInfo.duration_text}'),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: directionDetailsInfo.transitSteps!.length,
-                  itemBuilder: (context, index) {
-                    var transitStep = directionDetailsInfo.transitSteps![index];
-                    return ListTile(
-                      title: Text(
-                          '${transitStep.vehicleType} - ${transitStep.lineName}'),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Agency: ${transitStep.agencyName}'),
-                          Text(
-                              'From: ${transitStep.departureStop} at ${transitStep.departureTime}'),
-                          Text(
-                              'To: ${transitStep.arrivalStop} at ${transitStep.arrivalTime}'),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
+  double calculateDistance(lat1, lon1, lat2, lon2) {
+    var p = 0.017453292519943295; // Math.PI / 180
+    var c = cos;
+    var a = 0.5 -
+        c((lat2 - lat1) * p) / 2 +
+        c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p)) / 2;
+    return 12742 * asin(sqrt(a)); // 2 * R; R = 6371 km
   }
 
   Future<void> drawPolylineFromOriginToDestination() async {
@@ -478,108 +675,205 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // createActiveNearByDriverIconMarker();
-    return GestureDetector(
-      onTap: () {
-        FocusScope.of(context).unfocus();
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text(
-            "Home",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
+    return Builder(
+      builder: (context) {
+        return GestureDetector(
+          onTap: () {
+            FocusScope.of(context).unfocus();
+          },
+          child: Scaffold(
+            appBar: AppBar(
+              title: const Text(
+                "Home",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
-          ),
-        ),
-        drawer: const MyDrawer(),
-        body: Stack(
-          children: [
-            GoogleMap(
-              mapType: MapType.normal,
-              myLocationEnabled: true,
-              zoomGesturesEnabled: true,
-              zoomControlsEnabled: false,
-              initialCameraPosition: _kGooglePlex,
-              polylines: polylineSet,
-              markers: markerSet,
-              circles: circleSet,
-              onMapCreated: (GoogleMapController controller) {
-                _controllerGoogleMap.complete(controller);
-                newGoogleMapController = controller;
+            drawer: const MyDrawer(),
+            body: Stack(children: [
+              GoogleMap(
+                mapType: MapType.normal,
+                myLocationEnabled: true,
+                zoomGesturesEnabled: true,
+                zoomControlsEnabled: false,
+                initialCameraPosition: Manila,
+                polylines: polylineSet,
+                markers: markerSet,
+                circles: circleSet,
+                onMapCreated: (GoogleMapController controller) {
+                  _controllerGoogleMap.complete(controller);
+                  newGoogleMapController = controller;
 
-                setState(() {});
-                locateUserPosition();
-              },
-            ),
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 50, 20, 20),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.black38,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Column(
-                        children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              color: Colors.orange[600],
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Column(
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(5),
-                                  child: Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.location_on_outlined,
-                                        color: Colors.black,
-                                      ),
-                                      const SizedBox(width: 10),
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          const Text(
-                                            "From",
-                                            style: TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold,
+                  setState(() {});
+                  locateUserPosition();
+                },
+              ),
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 50, 20, 20),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.black38,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Column(
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.orange[600],
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Column(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.all(5),
+                                    child: Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.location_on_outlined,
+                                          color: Colors.black,
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            const Text(
+                                              "From",
+                                              style: TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                              ),
                                             ),
+                                            Text(
+                                              Provider.of<appInfo>(context)
+                                                          .userPickUpLocation !=
+                                                      null
+                                                  ? "${(Provider.of<appInfo>(context).userPickUpLocation!.locationName!).substring(0, 24)}..."
+                                                  : "...",
+                                            )
+                                          ],
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 5),
+                                  const Divider(
+                                    height: 1,
+                                    thickness: 2,
+                                    color: Colors.black,
+                                  ),
+                                  const SizedBox(height: 5),
+                                  Padding(
+                                    padding: const EdgeInsets.all(5),
+                                    child: GestureDetector(
+                                      onTap: () async {
+                                        // Go to search page
+                                        var responseFromSearchPage =
+                                            await Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (c) =>
+                                                        const SearchPage()));
+
+                                        if (responseFromSearchPage ==
+                                            "obtainedDestination") {
+                                          setState(() {
+                                            openNavigationDrawer = false;
+                                          });
+                                        }
+                                        await drawPolylineFromOriginToDestination();
+                                      },
+                                      child: Row(
+                                        children: [
+                                          const Icon(
+                                            Icons.location_on_outlined,
+                                            color: Colors.black,
                                           ),
-                                          Text(
-                                            Provider.of<appInfo>(context)
-                                                        .userPickUpLocation !=
-                                                    null
-                                                ? "${(Provider.of<appInfo>(context).userPickUpLocation!.locationName!).substring(0, 24)}..."
-                                                : "...",
+                                          const SizedBox(width: 10),
+                                          Flexible(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                const Text(
+                                                  "Where to",
+                                                  style: TextStyle(
+                                                    color: Colors.black,
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  Provider.of<appInfo>(context)
+                                                              .userDestinationLocation !=
+                                                          null
+                                                      ? Provider.of<appInfo>(
+                                                              context)
+                                                          .userDestinationLocation!
+                                                          .locationName!
+                                                      : "...",
+                                                )
+                                              ],
+                                            ),
                                           )
                                         ],
-                                      )
-                                    ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(
+                              height: 5,
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Flexible(
+                                  child: ElevatedButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (c) =>
+                                              const PrecisePickUpLocation(),
+                                        ),
+                                      );
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.amber[400],
+                                      textStyle: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                    child: const Text(
+                                      'Set Pickup',
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                      ),
+                                    ),
                                   ),
                                 ),
-                                const SizedBox(height: 5),
-                                const Divider(
-                                  height: 1,
-                                  thickness: 2,
-                                  color: Colors.black,
+                                const SizedBox(
+                                  width: 10,
                                 ),
-                                const SizedBox(height: 5),
-                                Padding(
-                                  padding: const EdgeInsets.all(5),
-                                  child: GestureDetector(
-                                    onTap: () async {
+                                Flexible(
+                                  child: ElevatedButton(
+                                    onPressed: () async {
                                       // Go to search page
                                       var responseFromSearchPage =
                                           await Navigator.push(
@@ -596,133 +890,37 @@ class _HomePageState extends State<HomePage> {
                                       }
                                       await drawPolylineFromOriginToDestination();
                                     },
-                                    child: Row(
-                                      children: [
-                                        const Icon(
-                                          Icons.location_on_outlined,
-                                          color: Colors.black,
-                                        ),
-                                        const SizedBox(width: 10),
-                                        Flexible(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              const Text(
-                                                "Where to",
-                                                style: TextStyle(
-                                                  color: Colors.black,
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                              Text(
-                                                Provider.of<appInfo>(context)
-                                                            .userDestinationLocation !=
-                                                        null
-                                                    ? Provider.of<appInfo>(
-                                                            context)
-                                                        .userDestinationLocation!
-                                                        .locationName!
-                                                    : "...",
-                                              )
-                                            ],
-                                          ),
-                                        )
-                                      ],
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.amber[400],
+                                      textStyle: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                    child: const Text(
+                                      'Set Destination',
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                      ),
                                     ),
                                   ),
                                 ),
                               ],
                             ),
-                          ),
-                          const SizedBox(
-                            height: 5,
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Flexible(
-                                child: ElevatedButton(
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (c) =>
-                                            const PrecisePickUpLocation(),
-                                      ),
-                                    );
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.amber[400],
-                                    textStyle: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 13,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                  ),
-                                  child: const Text(
-                                    'Set Pickup',
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(
-                                width: 10,
-                              ),
-                              Flexible(
-                                child: ElevatedButton(
-                                  onPressed: () async {
-                                    // Go to search page
-                                    var responseFromSearchPage =
-                                        await Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                                builder: (c) =>
-                                                    const SearchPage()));
-
-                                    if (responseFromSearchPage ==
-                                        "obtainedDestination") {
-                                      setState(() {
-                                        openNavigationDrawer = false;
-                                      });
-                                    }
-                                    await drawPolylineFromOriginToDestination();
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.amber[400],
-                                    textStyle: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 13,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                  ),
-                                  child: const Text(
-                                    'Set Destination',
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    )
-                  ],
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
-      ),
+            ]),
+          ),
+        );
+      },
     );
   }
 }

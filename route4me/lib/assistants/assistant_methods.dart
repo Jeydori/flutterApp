@@ -156,4 +156,46 @@ class assistantMethods {
 
     return directionsList;
   }
+
+  static Future<DirectionDetailsInfo> fetchDriverToDepartureDetails(
+      LatLng driverPosition, LatLng firstDeparturePosition) async {
+    String url =
+        "https://maps.googleapis.com/maps/api/directions/json?origin=${driverPosition.latitude},${driverPosition.longitude}&destination=${firstDeparturePosition.latitude},${firstDeparturePosition.longitude}&departure_time=now&mode=driving&traffic_model=best_guess&key=$mapKey";
+
+    var response = await RequestAssistant.receiveRequest(url);
+
+    // Default DirectionDetailsInfo in case of failure or empty routes
+    DirectionDetailsInfo defaultDirectionDetailsInfo = DirectionDetailsInfo(
+      e_points: '',
+      distance_text: 'No route found',
+      distance_value: 0,
+      duration_text: 'No duration available',
+      duration_value: 0,
+    );
+
+    if (response == "failed" ||
+        response["routes"] == null ||
+        response["routes"].isEmpty) {
+      return defaultDirectionDetailsInfo;
+    }
+
+    var route = response["routes"][0];
+    if (route["legs"] == null || route["legs"].isEmpty) {
+      return defaultDirectionDetailsInfo;
+    }
+
+    var leg = route["legs"][0];
+
+    DirectionDetailsInfo directionDetailsInfo = DirectionDetailsInfo();
+    directionDetailsInfo.e_points = route["overview_polyline"]["points"];
+    directionDetailsInfo.distance_text = leg["distance"]["text"];
+    directionDetailsInfo.distance_value = leg["distance"]["value"];
+    directionDetailsInfo.duration_text = leg["duration"]["text"];
+    directionDetailsInfo.duration_value = leg["duration"]["value"];
+
+    // Debug prints to ensure correct values
+    print("Fetched DirectionDetailsInfo: $directionDetailsInfo");
+
+    return directionDetailsInfo;
+  }
 }
