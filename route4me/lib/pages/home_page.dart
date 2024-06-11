@@ -55,12 +55,25 @@ class _HomePageState extends State<HomePage> {
   bool activeNearbyDriverKeysLoaded = false;
   Map<String, LatLng> activeDrivers = {};
 
-  // BitmapDescriptor? activeNearbyIcon;
+  BitmapDescriptor activeNearbyIcon = BitmapDescriptor.defaultMarker;
 
   @override
   void initState() {
     super.initState();
     checkIfLocationPermissionAllowed();
+    addCustomIcon();
+  }
+
+  void addCustomIcon() {
+    BitmapDescriptor.fromAssetImage(
+            const ImageConfiguration(size: Size(1, 1)), 'lib/images/JEEP.png')
+        .then(
+      (icon) {
+        setState(() {
+          activeNearbyIcon = icon;
+        });
+      },
+    );
   }
 
   void checkIfLocationPermissionAllowed() async {
@@ -158,7 +171,7 @@ class _HomePageState extends State<HomePage> {
       Marker marker = Marker(
         markerId: MarkerId(key),
         position: driverPosition,
-        icon: BitmapDescriptor.defaultMarker,
+        icon: activeNearbyIcon,
         onTap: () {
           showCustomBottomSheet(
             barrierColor: Colors.transparent,
@@ -211,7 +224,7 @@ class _HomePageState extends State<HomePage> {
       Marker marker = Marker(
         markerId: MarkerId(key),
         position: driverPosition,
-        icon: BitmapDescriptor.defaultMarker,
+        icon: activeNearbyIcon,
         onTap: () {
           // Call the dynamic bottom sheet with updated location information
           showCustomBottomSheet(

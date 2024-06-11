@@ -23,24 +23,17 @@ class _LoginPageState extends State<LoginPage> {
 
   //sign user in method
   void logIn() async {
-    // show loading circle
     showDialog(
       context: context,
-      builder: (context) {
-        return const Center(
-          child: CircularProgressIndicator(),
-        );
-      },
+      builder: (context) => const Center(child: CircularProgressIndicator()),
     );
 
-    // try signing in
     try {
       final userCredential = await firebaseAuth.signInWithEmailAndPassword(
         email: emailController.text,
         password: passwordController.text,
       );
 
-      // fetch user data from "Drivers" collection in Realtime Database
       DatabaseReference userRef = FirebaseDatabase.instance
           .ref()
           .child('Users')
@@ -48,26 +41,28 @@ class _LoginPageState extends State<LoginPage> {
       DatabaseEvent event = await userRef.once();
 
       if (event.snapshot.value != null) {
-        // User data exists in the database, you can handle it here
         print('User data retrieved: ${event.snapshot.value}');
-        // Store user data in global variable or use as needed
       } else {
         throw Exception('User document does not exist');
       }
 
-      //pop the loading circle
-      Navigator.pop(context);
+      if (mounted) {
+        Navigator.pop(context); // Close the loading spinner safely
+      }
     } on FirebaseAuthException catch (e) {
-      //pop the loading circle
-      Navigator.pop(context);
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
+      if (mounted) {
+        Navigator.pop(
+            context); // Ensure context is still valid when dismissing the dialog
+      }
+
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
             content: Text(e.message.toString()),
-          );
-        },
-      );
+          ),
+        );
+      }
     }
   }
 
