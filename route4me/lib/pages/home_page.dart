@@ -12,6 +12,7 @@ import 'package:provider/provider.dart';
 import 'package:route4me/info handler/app_info.dart';
 import 'package:route4me/components/progress_dialog.dart';
 import 'package:route4me/models/direction_infos.dart';
+import 'package:route4me/pages/navigation_page.dart';
 import 'package:route4me/pages/search_page.dart';
 import 'package:route4me/services/precise_pickup_location.dart';
 import 'package:route4me/components/drawer.dart';
@@ -66,14 +67,14 @@ class _HomePageState extends State<HomePage> {
 
   void addCustomIcon() {
     BitmapDescriptor.fromAssetImage(
-            const ImageConfiguration(size: Size(1, 1)), 'lib/images/JEEP.png')
-        .then(
-      (icon) {
-        setState(() {
-          activeNearbyIcon = icon;
-        });
-      },
-    );
+            ImageConfiguration(size: Size(1, 1)), 'lib/images/JEEP.png')
+        .then((icon) {
+      setState(() {
+        activeNearbyIcon = icon;
+      });
+    }).catchError((e) {
+      print("Failed to load icon: $e");
+    });
   }
 
   void checkIfLocationPermissionAllowed() async {
@@ -575,6 +576,23 @@ class _HomePageState extends State<HomePage> {
                     style: TextStyle(
                         color: Theme.of(context).primaryColor,
                         fontWeight: FontWeight.bold)),
+              ),
+            ),
+            Align(
+              alignment: Alignment.center,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context); // Close the bottom sheet
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => NavigationPage(
+                        directionDetailsInfo: directionDetailsInfo,
+                      ),
+                    ),
+                  );
+                },
+                child: Text("Start Navigation"),
               ),
             ),
           ],
