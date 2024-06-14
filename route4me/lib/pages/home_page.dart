@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_geofire/flutter_geofire.dart';
@@ -12,6 +13,7 @@ import 'package:provider/provider.dart';
 import 'package:route4me/info handler/app_info.dart';
 import 'package:route4me/components/progress_dialog.dart';
 import 'package:route4me/models/direction_infos.dart';
+import 'package:route4me/models/driver_details.dart';
 import 'package:route4me/pages/navigation_page.dart';
 import 'package:route4me/pages/search_page.dart';
 import 'package:route4me/services/precise_pickup_location.dart';
@@ -161,7 +163,18 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void handleDriverEntered(Map<dynamic, dynamic> map) {
+  Future<DriverDetails> getDriverDetails(String key) async {
+    var snapshot =
+        await FirebaseDatabase.instance.ref().child('Drivers').child(key).get();
+    if (snapshot.exists && snapshot.value != null) {
+      return DriverDetails.fromSnapshot(snapshot.value);
+    } else {
+      print('No driver details found for key: $key');
+      return Future.error('Driver details not found');
+    }
+  }
+
+  void handleDriverEntered(Map<dynamic, dynamic> map) async {
     var key = map["key"];
     var latitude = map["latitude"];
     var longitude = map["longitude"];
@@ -169,6 +182,10 @@ class _HomePageState extends State<HomePage> {
 
     if (key != null && latitude != null && longitude != null) {
       LatLng driverPosition = LatLng(latitude, longitude);
+
+      // Fetch driver details from Firebase
+      var driverDetails = await getDriverDetails(key);
+
       Marker marker = Marker(
         markerId: MarkerId(key),
         position: driverPosition,
@@ -178,14 +195,20 @@ class _HomePageState extends State<HomePage> {
             barrierColor: Colors.transparent,
             context: context,
             title: "Driver Information",
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("Key: $key"),
-                Text("Latitude: $latitude"),
-                Text("Longitude: $longitude"),
-              ],
+            content: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                      "Name: ${driverDetails.firstName} ${driverDetails.lastName}"),
+                  Text("Contact email: ${driverDetails.email}"),
+                  Text('PUV: ${driverDetails.carType}'),
+                  Text('Plate Number: ${driverDetails.carPlate}'),
+                  Text("Latitude: $latitude"),
+                  Text("Longitude: $longitude"),
+                ],
+              ),
             ),
           );
         },
@@ -214,7 +237,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void handleDriverMoved(Map<dynamic, dynamic> map) {
+  void handleDriverMoved(Map<dynamic, dynamic> map) async {
     var key = map["key"];
     var latitude = map["latitude"];
     var longitude = map["longitude"];
@@ -222,24 +245,33 @@ class _HomePageState extends State<HomePage> {
 
     if (key != null && latitude != null && longitude != null) {
       LatLng driverPosition = LatLng(latitude, longitude);
+
+      // Fetch driver details from Firebase
+      var driverDetails = await getDriverDetails(key);
+
       Marker marker = Marker(
         markerId: MarkerId(key),
         position: driverPosition,
         icon: activeNearbyIcon,
         onTap: () {
-          // Call the dynamic bottom sheet with updated location information
           showCustomBottomSheet(
             barrierColor: Colors.transparent,
             context: context,
             title: "Driver Moved",
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("Driver Key: $key"),
-                Text("New Latitude: $latitude"),
-                Text("New Longitude: $longitude"),
-              ],
+            content: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                      "Name: ${driverDetails.firstName} ${driverDetails.lastName}"),
+                  Text("Contact email: ${driverDetails.email}"),
+                  Text('PUV: ${driverDetails.carType}'),
+                  Text('Plate Number: ${driverDetails.carPlate}'),
+                  Text("Latitude: $latitude"),
+                  Text("Longitude: $longitude"),
+                ],
+              ),
             ),
           );
         },
@@ -264,29 +296,28 @@ class _HomePageState extends State<HomePage> {
   }) {
     showModalBottomSheet(
       isScrollControlled: true,
-      barrierColor: Colors.transparent, // Ensures no darkening of background
+      barrierColor: barrierColor, // You can adjust the transparency as needed
       context: context,
       builder: (BuildContext ctx) {
         return DraggableScrollableSheet(
-          initialChildSize: 0.4, // Initial size of the bottom sheet when opened
-          minChildSize:
-              0.2, // Minimum size of the bottom sheet when dragged down
-          maxChildSize: 0.9, // Maximum size of the bottom sheet when dragged up
+          initialChildSize: 0.4, // Adjusted for better initial appearance
+          minChildSize: 0.2, // Minimal size when collapsed
+          maxChildSize: 0.9, // Maximal size when expanded
           expand: false,
           builder: (BuildContext context, ScrollController scrollController) {
             return Container(
-              padding: EdgeInsets.all(20),
+              padding: EdgeInsets.symmetric(horizontal: 0, vertical: 10),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Colors.white, // White background for the main container
                 borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(20),
-                  topRight: Radius.circular(20),
+                  topLeft: Radius.circular(10),
+                  topRight: Radius.circular(10),
                 ),
                 boxShadow: [
                   BoxShadow(
-                    blurRadius: 10,
+                    blurRadius: 5,
                     color: Colors.black26,
-                    spreadRadius: 5,
+                    spreadRadius: 3,
                   ),
                 ],
               ),
@@ -296,20 +327,30 @@ class _HomePageState extends State<HomePage> {
                   Center(
                     child: Container(
                       width: 40,
-                      height: 5,
-                      margin: EdgeInsets.only(bottom: 8),
+                      height: 4,
+                      margin: EdgeInsets.only(bottom: 10),
                       decoration: BoxDecoration(
-                        color: Colors.grey[300],
+                        color: Colors.grey[300], // Grey handle indicator
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
                   ),
-                  Text(
-                    title,
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  Container(
+                    color: Colors.orange, // Orange background for the title
+                    padding: EdgeInsets.only(
+                        top: 8, bottom: 8), // Remove left and right padding
+                    child: Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black, // Black text for contrast
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
                   ),
                   SizedBox(height: 20),
-                  content,
+                  Center(child: content),
                 ],
               ),
             );
@@ -521,83 +562,138 @@ class _HomePageState extends State<HomePage> {
       context: context,
       title: "Route Information",
       content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: 10),
-            Text('Distance: ${directionDetailsInfo.distance_text ?? "N/A"}',
-                style: TextStyle(fontSize: 16)),
-            Text('Duration: ${directionDetailsInfo.duration_text ?? "N/A"}',
-                style: TextStyle(fontSize: 16)),
-            if (directionDetailsInfo.fare != null)
-              Text('Estimated Fare: ${directionDetailsInfo.fare}',
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(height: 10),
+              Text('Distance: ${directionDetailsInfo.distance_text ?? "N/A"}',
                   style: TextStyle(fontSize: 16)),
-            SizedBox(height: 10),
-            if (trafficInfo != null)
-              Text(
-                  'Time from driver to first stop: ${trafficInfo.duration_text}',
+              Text('Duration: ${directionDetailsInfo.duration_text ?? "N/A"}',
                   style: TextStyle(fontSize: 16)),
-            SizedBox(height: 10),
-            Text('Detailed Steps:',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            ListView.builder(
-              shrinkWrap: true,
-              physics:
-                  AlwaysScrollableScrollPhysics(), // to disable ListView's scrolling
-              itemCount: directionDetailsInfo.steps?.length ?? 0,
-              itemBuilder: (context, index) {
-                var step = directionDetailsInfo.steps![index];
-                String stepTitle =
-                    step["travel_mode"] == "WALKING" ? "Walk" : "Transit";
-                String stepDetails = stepTitle == "Walk"
-                    ? 'Walk ${step["distance"]["text"]} - ${step["duration"]["text"]}'
-                    : '${step["transit_details"]["line"]["vehicle"]["name"]} from ${step["transit_details"]["departure_stop"]["name"]} to ${step["transit_details"]["arrival_stop"]["name"]}';
+              if (directionDetailsInfo.fare != null)
+                Text('Estimated Fare: ${directionDetailsInfo.fare}',
+                    style: TextStyle(fontSize: 16)),
+              SizedBox(height: 10),
+              if (trafficInfo != null)
+                Text(
+                    'Time from driver to first stop: ${trafficInfo.duration_text}',
+                    style: TextStyle(fontSize: 16)),
+              SizedBox(height: 10),
+              Text('Detailed Steps:',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              Center(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics:
+                          AlwaysScrollableScrollPhysics(), // to disable ListView's scrolling
+                      itemCount: directionDetailsInfo.steps?.length ?? 0,
+                      itemBuilder: (context, index) {
+                        var step = directionDetailsInfo.steps![index];
+                        String stepTitle = step["travel_mode"] == "WALKING"
+                            ? "Walk"
+                            : "Transit";
+                        String stepDetails = stepTitle == "Walk"
+                            ? 'Walk ${step["distance"]["text"]} - ${step["duration"]["text"]}'
+                            : '${step["transit_details"]["line"]["vehicle"]["name"]} from ${step["transit_details"]["departure_stop"]["name"]} to ${step["transit_details"]["arrival_stop"]["name"]}';
 
-                return ListTile(
-                  leading: Icon(step["travel_mode"] == "WALKING"
-                      ? Icons.directions_walk
-                      : Icons.directions_bus),
-                  title: Text(stepTitle, style: TextStyle(fontSize: 16)),
-                  subtitle: Text(stepDetails,
-                      maxLines: 2, overflow: TextOverflow.ellipsis),
-                );
-              },
-            ),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () {
-                  Navigator.pop(context); // Close this details sheet
-                  showRouteSelectionSheet(
-                      context, directionsList); // Show route options again
-                },
-                child: Text("Choose another route",
-                    style: TextStyle(
-                        color: Theme.of(context).primaryColor,
-                        fontWeight: FontWeight.bold)),
-              ),
-            ),
-            Align(
-              alignment: Alignment.center,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context); // Close the bottom sheet
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => NavigationPage(
-                        directionDetailsInfo: directionDetailsInfo,
-                      ),
+                        return ListTile(
+                          leading: Icon(step["travel_mode"] == "WALKING"
+                              ? Icons.directions_walk
+                              : Icons.directions_bus),
+                          title:
+                              Text(stepTitle, style: TextStyle(fontSize: 16)),
+                          subtitle: Text(stepDetails,
+                              maxLines: 2, overflow: TextOverflow.ellipsis),
+                        );
+                      },
                     ),
-                  );
-                },
-                child: Text("Start Navigation"),
+                  ],
+                ),
               ),
-            ),
-          ],
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () {
+                    Navigator.pop(context); // Close this details sheet
+                    showRouteSelectionSheet(
+                        context, directionsList); // Show route options again
+                  },
+                  child: Text("Choose another route",
+                      style: TextStyle(
+                          color: Theme.of(context).primaryColor,
+                          fontWeight: FontWeight.bold)),
+                ),
+              ),
+              Align(
+                alignment: Alignment.center,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context); // Close the bottom sheet
+                    startNavigation(directionDetailsInfo);
+                  },
+                  child: Text(
+                    "Start Navigation",
+                    style: TextStyle(
+                      color: Colors.black, // Black text color
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange, // Orange background color
+                    shape: RoundedRectangleBorder(
+                      borderRadius:
+                          BorderRadius.circular(10), // Rounded corners
+                    ),
+                  ),
+                ),
+              )
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  Future<void> startNavigation(DirectionDetailsInfo directionDetails) async {
+    final result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) =>
+                NavigationPage(directionDetailsInfo: directionDetails)));
+
+    if (result != null && result == "Trip Completed") {
+      showRatingDialog(); // Call the function that shows the rating interface
+    }
+  }
+
+  void showRatingDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Rate the Vehicle"),
+          content: Text("Please provide your rating for the trip."),
+          actions: <Widget>[
+            TextButton(
+              child: Text("Submit"),
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+                // Here you can handle the submission logic
+              },
+            ),
+            TextButton(
+              child: Text("Cancel"),
+              onPressed: () {
+                Navigator.of(context).pop(); // Simply close the dialog
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 

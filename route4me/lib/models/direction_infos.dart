@@ -3,7 +3,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 class DirectionDetailsInfo {
   String? e_points;
   String? distance_text;
-  int? distance_value;
+  double distance_value;
   String? duration_text;
   int? duration_value;
   String? duration_in_traffic_text;
@@ -11,11 +11,13 @@ class DirectionDetailsInfo {
   List<dynamic>? steps;
   List<TransitInfo>? transitSteps;
   String? fare;
+  double? destinationLatitude; // Added for destination latitude
+  double? destinationLongitude; // Added for destination longitude
 
   DirectionDetailsInfo({
     this.e_points,
     this.distance_text,
-    this.distance_value,
+    required this.distance_value,
     this.duration_text,
     this.duration_value,
     this.duration_in_traffic_text,
@@ -23,6 +25,8 @@ class DirectionDetailsInfo {
     this.steps,
     this.transitSteps,
     this.fare,
+    this.destinationLatitude, // Initialize in constructor
+    this.destinationLongitude,
   });
 }
 

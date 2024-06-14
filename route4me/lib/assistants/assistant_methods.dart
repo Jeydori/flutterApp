@@ -110,18 +110,15 @@ class assistantMethods {
     List<DirectionDetailsInfo> directionsList = [];
 
     for (var route in responseDirectionApi["routes"]) {
-      DirectionDetailsInfo directionDetailsInfo = DirectionDetailsInfo();
-      directionDetailsInfo.e_points = route["overview_polyline"]["points"];
-      directionDetailsInfo.distance_text = route["legs"][0]["distance"]["text"];
-      directionDetailsInfo.distance_value =
-          route["legs"][0]["distance"]["value"];
-      directionDetailsInfo.duration_text = route["legs"][0]["duration"]["text"];
-      directionDetailsInfo.duration_value =
-          route["legs"][0]["duration"]["value"];
-      if (route["fare"] != null) {
-        directionDetailsInfo.fare = route["fare"]["text"];
-      }
-      directionDetailsInfo.steps = route["legs"][0]["steps"];
+      DirectionDetailsInfo directionDetailsInfo = DirectionDetailsInfo(
+        e_points: route["overview_polyline"]["points"],
+        distance_text: route["legs"][0]["distance"]["text"],
+        distance_value: (route["legs"][0]["distance"]["value"]).toDouble(),
+        duration_text: route["legs"][0]["duration"]["text"],
+        duration_value: route["legs"][0]["duration"]["value"],
+        fare: route["fare"] != null ? route["fare"]["text"] : null,
+        steps: route["legs"][0]["steps"],
+      );
 
       // Parse transit steps
       List<TransitInfo> transitSteps = [];
@@ -160,7 +157,7 @@ class assistantMethods {
   static Future<DirectionDetailsInfo> fetchDriverToDepartureDetails(
       LatLng driverPosition, LatLng firstDeparturePosition) async {
     String url =
-        "https://maps.googleapis.com/maps/api/directions/json?origin=${driverPosition.latitude},${driverPosition.longitude}&destination=${firstDeparturePosition.latitude},${firstDeparturePosition.longitude}&departure_time=now&mode=driving&traffic_model=best_guess&key=$mapKey";
+        "https://maps.googleapis.com/maps/api/directions/json?origin=${driverPosition.latitude},${driverPosition.longitude}&destination=${firstDeparturePosition.latitude},${firstDeparturePosition.longitude}&departure_time=now&mode=transit&traffic_model=best_guess&key=$mapKey";
 
     var response = await RequestAssistant.receiveRequest(url);
 
@@ -168,7 +165,7 @@ class assistantMethods {
     DirectionDetailsInfo defaultDirectionDetailsInfo = DirectionDetailsInfo(
       e_points: '',
       distance_text: 'No route found',
-      distance_value: 0,
+      distance_value: 0.0,
       duration_text: 'No duration available',
       duration_value: 0,
     );
@@ -186,12 +183,13 @@ class assistantMethods {
 
     var leg = route["legs"][0];
 
-    DirectionDetailsInfo directionDetailsInfo = DirectionDetailsInfo();
-    directionDetailsInfo.e_points = route["overview_polyline"]["points"];
-    directionDetailsInfo.distance_text = leg["distance"]["text"];
-    directionDetailsInfo.distance_value = leg["distance"]["value"];
-    directionDetailsInfo.duration_text = leg["duration"]["text"];
-    directionDetailsInfo.duration_value = leg["duration"]["value"];
+    DirectionDetailsInfo directionDetailsInfo = DirectionDetailsInfo(
+      e_points: route["overview_polyline"]["points"],
+      distance_text: leg["distance"]["text"],
+      distance_value: (leg["distance"]["value"]).toDouble(),
+      duration_text: leg["duration"]["text"],
+      duration_value: leg["duration"]["value"],
+    );
 
     // Debug prints to ensure correct values
     print("Fetched DirectionDetailsInfo: $directionDetailsInfo");

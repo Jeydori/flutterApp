@@ -17,46 +17,113 @@ class NavigationPage extends StatefulWidget {
 
 class _NavigationPageState extends State<NavigationPage> {
   GoogleMapController? _mapController;
+  StreamSubscription<Position>? _positionStreamSubscription;
+
   Position? _currentPosition;
   Set<Polyline> _polylines = Set<Polyline>();
   Set<Marker> _markers = Set<Marker>();
   bool _isNavigating = true;
+  BitmapDescriptor? userLocationIcon;
+  String _distanceText = "";
+  String _etaText = "";
 
   @override
   void initState() {
     super.initState();
     _initLocationService();
     _drawRoute();
+    _locateInitialPosition();
+    _loadCustomIcon();
   }
 
-  StreamSubscription<Position>? _positionStreamSubscription;
+  void _locateInitialPosition() async {
+    try {
+      Position initialPosition = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
+      print("Initial position found: $initialPosition"); // Debug output
+      _updateMapLocation(initialPosition);
+    } catch (e) {
+      print("Error getting initial position: $e");
+    }
+  }
+
+  void _updateMapLocation(Position position) {
+    LatLng currentLatLng = LatLng(position.latitude, position.longitude);
+    _mapController
+        ?.animateCamera(CameraUpdate.newLatLngZoom(currentLatLng, 15));
+    _updateUserLocationMarker(currentLatLng);
+    _updateDistanceAndEta(currentLatLng);
+  }
+
+  void _updateUserLocationMarker(LatLng currentLatLng) {
+    Marker currentLocationMarker = Marker(
+      markerId: MarkerId('currentLocation'),
+      position: currentLatLng,
+      icon: userLocationIcon ?? BitmapDescriptor.defaultMarker,
+      anchor: Offset(0.5, 1),
+    );
+
+    setState(() {
+      _markers.removeWhere((m) => m.markerId.value == 'currentLocation');
+      _markers.add(currentLocationMarker);
+    });
+  }
 
   void _initLocationService() {
     LocationSettings locationSettings = LocationSettings(
-      accuracy: LocationAccuracy.high,
+      accuracy: LocationAccuracy.bestForNavigation,
       distanceFilter: 10,
     );
 
     _positionStreamSubscription =
         Geolocator.getPositionStream(locationSettings: locationSettings).listen(
             (Position position) {
-      if (position != null) {
-        setState(() {
-          _currentPosition = position;
-          _updateUserLocation();
-        });
-      }
+      _currentPosition = position;
+      _updateMapLocation(position);
     }, onError: (e) {
       print("Error getting location stream: $e");
     });
   }
 
-  void _stopNavigation() {
-    setState(() {
-      _isNavigating = false;
+  void _loadCustomIcon() {
+    BitmapDescriptor.fromAssetImage(
+            ImageConfiguration(size: Size(1, 1)), 'lib/images/JEEP.png')
+        .then((icon) {
+      setState(() {
+        userLocationIcon = icon;
+      });
+    }).catchError((e) {
+      print("Failed to load user location icon: $e");
     });
-    _positionStreamSubscription
-        ?.cancel(); // Cancel the position stream subscription
+  }
+
+  void _updateDistanceAndEta(LatLng currentLatLng) {
+    LatLng destinationLatLng = LatLng(
+        widget.directionDetailsInfo.destinationLatitude!,
+        widget.directionDetailsInfo.destinationLongitude!);
+
+    double distance = Geolocator.distanceBetween(
+        currentLatLng.latitude,
+        currentLatLng.longitude,
+        destinationLatLng.latitude,
+        destinationLatLng.longitude);
+
+    double speed = _currentPosition?.speed ?? 0; // Speed in m/s
+
+    setState(() {
+      _distanceText = "${(distance / 1000).toStringAsFixed(2)} km";
+      double time = (speed > 0) ? distance / speed : 0;
+      _etaText = (time > 0)
+          ? "${(time / 3600).floor()} hr ${(time % 3600 / 60).floor()} min"
+          : "Calculating ETA...";
+    });
+
+    // Check if the user has arrived at the destination
+    if (distance < 30) {
+      // Threshold in meters
+      _stopNavigation();
+      _showArrivalDialog();
+    }
   }
 
   void _drawRoute() {
@@ -70,13 +137,8 @@ class _NavigationPageState extends State<NavigationPage> {
       _polylines.add(Polyline(
         polylineId: PolylineId('route'),
         points: polylineCoordinates,
-        color: Colors.blue,
+        color: Colors.orange.shade900,
         width: 5,
-      ));
-      _markers.add(Marker(
-        markerId: MarkerId('start'),
-        position: polylineCoordinates.first,
-        infoWindow: InfoWindow(title: 'Start'),
       ));
       _markers.add(Marker(
         markerId: MarkerId('end'),
@@ -86,27 +148,10 @@ class _NavigationPageState extends State<NavigationPage> {
     });
   }
 
-  void _updateUserLocation() {
-    if (_currentPosition != null && _isNavigating) {
-      LatLng currentLatLng =
-          LatLng(_currentPosition!.latitude, _currentPosition!.longitude);
-
-      // Move the camera to the new location
-      _mapController?.animateCamera(CameraUpdate.newLatLng(currentLatLng));
-
-      // Update or add the marker for the current location
-      Marker currentLocationMarker = Marker(
-        markerId: MarkerId('currentLocation'),
-        position: currentLatLng,
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-      );
-
-      setState(() {
-        // Check if the marker already exists
-        _markers.removeWhere((m) => m.markerId.value == 'currentLocation');
-        _markers.add(currentLocationMarker);
-      });
-    }
+  @override
+  void dispose() {
+    _positionStreamSubscription?.cancel();
+    super.dispose();
   }
 
   @override
@@ -121,20 +166,73 @@ class _NavigationPageState extends State<NavigationPage> {
           ),
         ],
       ),
-      body: GoogleMap(
-        initialCameraPosition: CameraPosition(
-          target: LatLng(14.599512, 120.984222),
-          zoom: 14.4746,
-        ),
-        onMapCreated: (controller) {
-          setState(() {
-            _mapController = controller;
-          });
-        },
-        polylines: _polylines,
-        markers: _markers,
-        myLocationEnabled: true,
+      body: Column(
+        children: [
+          Expanded(
+            child: GoogleMap(
+              mapType: MapType.normal,
+              initialCameraPosition: CameraPosition(
+                target: LatLng(14.599512, 120.984222),
+                zoom: 14.4746,
+              ),
+              onMapCreated: (controller) {
+                setState(() {
+                  _mapController = controller;
+                  _slantCamera();
+                });
+              },
+              polylines: _polylines,
+              markers: _markers,
+              myLocationEnabled: true,
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Text('Distance: $_distanceText, ETA: $_etaText'),
+          ),
+        ],
       ),
+    );
+  }
+
+  void _slantCamera() {
+    _mapController?.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
+      target: LatLng(14.599512, 120.984222),
+      zoom: 14.4746,
+      tilt: 45.0,
+    )));
+  }
+
+  void _stopNavigation() {
+    setState(() {
+      _isNavigating = false;
+    });
+    _positionStreamSubscription?.cancel();
+
+    // Optionally pass back any required data, such as details about the trip
+    Navigator.pop(context, "Trip Completed"); // You can pass back data here
+  }
+
+  void _showArrivalDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // User must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Arrived"),
+          content: Text("You have arrived at your destination."),
+          actions: <Widget>[
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context)
+                    .pop("Trip Completed"); // Close NavigationPage
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }
