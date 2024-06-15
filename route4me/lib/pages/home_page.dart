@@ -8,12 +8,14 @@ import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:route4me/assistants/assistant_methods.dart';
+import 'package:route4me/components/sorting_toggle.dart';
 import 'package:route4me/global/global.dart';
 import 'package:provider/provider.dart';
 import 'package:route4me/info handler/app_info.dart';
 import 'package:route4me/components/progress_dialog.dart';
 import 'package:route4me/models/direction_infos.dart';
 import 'package:route4me/models/driver_details.dart';
+import 'package:route4me/models/fare_chart.dart';
 import 'package:route4me/pages/navigation_page.dart';
 import 'package:route4me/pages/search_page.dart';
 import 'package:route4me/services/precise_pickup_location.dart';
@@ -361,7 +363,15 @@ class _HomePageState extends State<HomePage> {
   }
 
   void showRouteSelectionSheet(
-      BuildContext context, List<DirectionDetailsInfo> directionsList) {
+      BuildContext context,
+      List<DirectionDetailsInfo> directionsList,
+      Function(List<TransitInfo>?) calculateTotalFare,
+      Function(BuildContext, DirectionDetailsInfo, List<DirectionDetailsInfo>)
+          drawSelectedRoute,
+      Function(BuildContext, DirectionDetailsInfo, List<DirectionDetailsInfo>,
+              DirectionDetailsInfo?, String)
+          showRouteInfoBottomSheet,
+      String carType) {
     showModalBottomSheet(
       barrierColor: Colors.transparent,
       context: context,
@@ -369,54 +379,39 @@ class _HomePageState extends State<HomePage> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
       ),
       builder: (BuildContext ctx) {
-        return Container(
-          padding: EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 5,
-                  margin: EdgeInsets.symmetric(vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-              Text(
-                "Choose a Route",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 20),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: directionsList.length,
-                  itemBuilder: (ctx, index) {
-                    var info = directionsList[index];
-                    return ListTile(
-                      title: Text('Route ${index + 1}'),
-                      subtitle: Text(
-                          'Distance: ${info.distance_text}, Duration: ${info.duration_text}'),
-                      onTap: () {
-                        Navigator.pop(ctx); // Close route selection sheet
-                        _drawSelectedRoute(context, info, directionsList);
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
+        return RouteSelectionSheet(
+          directionsList: directionsList,
+          calculateTotalFare: calculateTotalFare,
+          drawSelectedRoute: drawSelectedRoute,
+          showRouteInfoBottomSheet: showRouteInfoBottomSheet,
+          carType: carType, // Pass carType to the RouteSelectionSheet
         );
       },
     );
+  }
+
+  MapEntry<String, LatLng>? getNearestDriverEntry() {
+    if (userCurrentPosition == null) {
+      return null; // Early return if position is null
+    }
+
+    double minDistance = double.maxFinite;
+    MapEntry<String, LatLng>? nearestDriverEntry;
+
+    for (var entry in activeDrivers.entries) {
+      double distance = calculateDistance(
+        userCurrentPosition!.latitude,
+        userCurrentPosition!.longitude,
+        entry.value.latitude,
+        entry.value.longitude,
+      );
+      if (distance < minDistance) {
+        minDistance = distance;
+        nearestDriverEntry = entry;
+      }
+    }
+
+    return nearestDriverEntry;
   }
 
   void _drawSelectedRoute(
@@ -429,47 +424,53 @@ class _HomePageState extends State<HomePage> {
       circleSet.clear(); // Clear any existing circles
     });
 
-    // Decode and draw the route polyline
-    PolylinePoints polylinePoints = PolylinePoints();
-    List<PointLatLng> decodedPolylinePoints =
-        polylinePoints.decodePolyline(directionDetailsInfo.e_points!);
-    List<LatLng> polylineCoordinates = decodedPolylinePoints
-        .map((point) => LatLng(point.latitude, point.longitude))
-        .toList();
+    MapEntry<String, LatLng>? nearestDriverEntry = getNearestDriverEntry();
+    if (nearestDriverEntry != null) {
+      String nearestDriverKey = nearestDriverEntry.key;
+      DriverDetails driverDetails = await getDriverDetails(nearestDriverKey);
 
-    // Set map bounds around the new polyline
-    LatLngBounds boundsLatLng = _calculateLatLngBounds(polylineCoordinates);
-    newGoogleMapController!
-        .animateCamera(CameraUpdate.newLatLngBounds(boundsLatLng, 70));
+      // Decode and draw the route polyline
+      PolylinePoints polylinePoints = PolylinePoints();
+      List<PointLatLng> decodedPolylinePoints =
+          polylinePoints.decodePolyline(directionDetailsInfo.e_points!);
+      List<LatLng> polylineCoordinates = decodedPolylinePoints
+          .map((point) => LatLng(point.latitude, point.longitude))
+          .toList();
 
-    // Adding start and end circles for the route
-    _addStartAndEndCircles(polylineCoordinates);
+      // Set map bounds around the new polyline
+      LatLngBounds boundsLatLng = _calculateLatLngBounds(polylineCoordinates);
+      newGoogleMapController!
+          .animateCamera(CameraUpdate.newLatLngBounds(boundsLatLng, 70));
 
-    // Add steps to the map (this draws the detailed route polyline)
-    _addStepsToMap(directionDetailsInfo.steps!);
+      // Adding start and end circles for the route
+      _addStartAndEndCircles(polylineCoordinates);
 
-    // Add transit steps circles to the map (visualizing stops)
-    _addTransitStepsCircles(directionDetailsInfo.transitSteps!);
+      // Add steps to the map (this draws the detailed route polyline)
+      _addStepsToMap(directionDetailsInfo.steps!);
 
-    LatLng? nearestDriverPosition = getNearestDriverPosition();
-    if (nearestDriverPosition != null) {
-      LatLng firstDeparturePosition =
-          directionDetailsInfo.transitSteps!.first.departureLocation;
+      // Add transit steps circles to the map (visualizing stops)
+      _addTransitStepsCircles(directionDetailsInfo.transitSteps!);
 
-      // Fetch traffic info from the nearest driver to the first departure position
-      DirectionDetailsInfo? trafficInfo =
-          await assistantMethods.fetchDriverToDepartureDetails(
-              nearestDriverPosition, firstDeparturePosition);
+      LatLng? nearestDriverPosition = getNearestDriverPosition();
+      DirectionDetailsInfo? trafficInfo;
+      if (nearestDriverPosition != null) {
+        LatLng firstDeparturePosition =
+            directionDetailsInfo.transitSteps!.first.departureLocation;
 
-      // Update UI with route info and optionally traffic info
-      if (trafficInfo != null) {
-        drawDriverToDeparturePolyline(
-            nearestDriverPosition, firstDeparturePosition, trafficInfo);
+        // Fetch traffic info from the nearest driver to the first departure position
+        trafficInfo = await assistantMethods.fetchDriverToDepartureDetails(
+            nearestDriverPosition, firstDeparturePosition);
+
+        // Update UI with route info and optionally traffic info
+        if (trafficInfo != null) {
+          drawDriverToDeparturePolyline(
+              nearestDriverPosition, firstDeparturePosition, trafficInfo);
+        }
       }
 
       // Display route info on a bottom sheet
-      _showRouteInfoBottomSheet(
-          context, directionDetailsInfo, directionsList, trafficInfo);
+      _showRouteInfoBottomSheet(context, directionDetailsInfo, directionsList,
+          trafficInfo, driverDetails.carType);
     } else {
       // Handle the case when no nearest driver is found
       print("No nearest driver found");
@@ -556,7 +557,15 @@ class _HomePageState extends State<HomePage> {
       BuildContext context,
       DirectionDetailsInfo directionDetailsInfo,
       List<DirectionDetailsInfo> directionsList,
-      DirectionDetailsInfo? trafficInfo) {
+      DirectionDetailsInfo? trafficInfo,
+      String carType) {
+    // Calculate the total fare for all transit steps
+    double totalTransitFare =
+        calculateTotalFare(directionDetailsInfo.transitSteps);
+
+    // Debug print to check direction details info
+    print('Showing route info for: ${directionDetailsInfo.distance_text}');
+
     showCustomBottomSheet(
       barrierColor: Colors.transparent,
       context: context,
@@ -568,13 +577,14 @@ class _HomePageState extends State<HomePage> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               SizedBox(height: 10),
-              Text('Distance: ${directionDetailsInfo.distance_text ?? "N/A"}',
+              Text('Total Distance: ${directionDetailsInfo.distance_text}',
                   style: TextStyle(fontSize: 16)),
-              Text('Duration: ${directionDetailsInfo.duration_text ?? "N/A"}',
+              Text('Duration: ${directionDetailsInfo.duration_text}',
                   style: TextStyle(fontSize: 16)),
-              if (directionDetailsInfo.fare != null)
-                Text('Estimated Fare: ${directionDetailsInfo.fare}',
-                    style: TextStyle(fontSize: 16)),
+              Text('Vehicle Type: $carType',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              Text('Total Fare: ₱${totalTransitFare.toStringAsFixed(2)}',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               SizedBox(height: 10),
               if (trafficInfo != null)
                 Text(
@@ -583,45 +593,98 @@ class _HomePageState extends State<HomePage> {
               SizedBox(height: 10),
               Text('Detailed Steps:',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              Center(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics:
-                          AlwaysScrollableScrollPhysics(), // to disable ListView's scrolling
-                      itemCount: directionDetailsInfo.steps?.length ?? 0,
-                      itemBuilder: (context, index) {
-                        var step = directionDetailsInfo.steps![index];
-                        String stepTitle = step["travel_mode"] == "WALKING"
-                            ? "Walk"
-                            : "Transit";
-                        String stepDetails = stepTitle == "Walk"
-                            ? 'Walk ${step["distance"]["text"]} - ${step["duration"]["text"]}'
-                            : '${step["transit_details"]["line"]["vehicle"]["name"]} from ${step["transit_details"]["departure_stop"]["name"]} to ${step["transit_details"]["arrival_stop"]["name"]}';
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.orange.shade600, width: 2.0),
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  itemCount: directionDetailsInfo.steps?.length ?? 0,
+                  itemBuilder: (context, index) {
+                    var step = directionDetailsInfo.steps![index];
+                    String stepTitle =
+                        step["travel_mode"] == "WALKING" ? "Walk" : "Transit";
+                    String fareDetails = "";
+                    if (stepTitle == "Transit") {
+                      TransitInfo? transitStep =
+                          directionDetailsInfo.transitSteps?.firstWhere(
+                              (t) =>
+                                  t.departureLocation ==
+                                  LatLng(
+                                      step["transit_details"]["departure_stop"]
+                                          ["location"]["lat"],
+                                      step["transit_details"]["departure_stop"]
+                                          ["location"]["lng"]),
+                              orElse: () => TransitInfo(
+                                  vehicleType: '',
+                                  lineName: '',
+                                  agencyName: '',
+                                  departureStop: '',
+                                  arrivalStop: '',
+                                  departureTime: '',
+                                  arrivalTime: '',
+                                  departureLocation: LatLng(0, 0),
+                                  arrivalLocation: LatLng(0, 0),
+                                  numberOfStops: 0,
+                                  fare: 0.0,
+                                  distanceText: ''));
+                      fareDetails =
+                          '₱${transitStep?.fare?.toStringAsFixed(2) ?? "0.00"}';
+                    }
+                    String stepDetails = stepTitle == "Walk"
+                        ? 'Walk ${step["distance"]["text"]} - ${step["duration"]["text"]}'
+                        : '${step["transit_details"]["line"]["vehicle"]["name"]} ${step["distance"]["text"]} from ${step["transit_details"]["departure_stop"]["name"]} to ${step["transit_details"]["arrival_stop"]["name"]}';
 
-                        return ListTile(
-                          leading: Icon(step["travel_mode"] == "WALKING"
-                              ? Icons.directions_walk
-                              : Icons.directions_bus),
-                          title:
-                              Text(stepTitle, style: TextStyle(fontSize: 16)),
-                          subtitle: Text(stepDetails,
-                              maxLines: 2, overflow: TextOverflow.ellipsis),
-                        );
-                      },
-                    ),
-                  ],
+                    return ListTile(
+                      leading: Icon(
+                        stepTitle == "Walk"
+                            ? Icons.directions_walk
+                            : Icons.directions_bus,
+                        color: Colors.orange.shade600,
+                      ),
+                      title: RichText(
+                        text: TextSpan(
+                          style: TextStyle(fontSize: 16, color: Colors.black),
+                          children: [
+                            TextSpan(
+                                text: stepTitle,
+                                style: TextStyle(fontWeight: FontWeight.bold)),
+                            TextSpan(text: " - "),
+                            TextSpan(text: stepDetails),
+                            if (stepTitle == "Transit")
+                              TextSpan(
+                                  text: " - Fare: ",
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold)),
+                            if (stepTitle == "Transit")
+                              TextSpan(text: fareDetails),
+                          ],
+                        ),
+                      ),
+                      subtitle: Text(step["duration"]["text"],
+                          style: TextStyle(color: Colors.grey)),
+                    );
+                  },
                 ),
               ),
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: () {
+                    print("Choosing another route");
                     Navigator.pop(context); // Close this details sheet
                     showRouteSelectionSheet(
-                        context, directionsList); // Show route options again
+                      context,
+                      directionsList,
+                      calculateTotalFare,
+                      (ctx, info, list) => _drawSelectedRoute(ctx, info, list),
+                      (ctx, info, list, traffic, carType) =>
+                          _showRouteInfoBottomSheet(
+                              ctx, info, list, traffic, carType),
+                      carType, // Pass the carType
+                    ); // Show route options again
                   },
                   child: Text("Choose another route",
                       style: TextStyle(
@@ -632,23 +695,19 @@ class _HomePageState extends State<HomePage> {
               Align(
                 alignment: Alignment.center,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
+                    print(
+                        "Starting navigation for: ${directionDetailsInfo.distance_text}");
                     Navigator.pop(context); // Close the bottom sheet
-                    startNavigation(directionDetailsInfo);
+                    await startNavigation(context,
+                        directionDetailsInfo); // Ensure this method navigates to the navigation page
                   },
-                  child: Text(
-                    "Start Navigation",
-                    style: TextStyle(
-                      color: Colors.black, // Black text color
-                    ),
-                  ),
+                  child: Text("Start Navigation",
+                      style: TextStyle(color: Colors.black)),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange, // Orange background color
-                    shape: RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(10), // Rounded corners
-                    ),
-                  ),
+                      backgroundColor: Colors.orange,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10))),
                 ),
               )
             ],
@@ -658,12 +717,31 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Future<void> startNavigation(DirectionDetailsInfo directionDetails) async {
+  double calculateTotalFare(List<TransitInfo>? transitSteps) {
+    double totalFare = 0.0;
+    if (transitSteps != null) {
+      for (var step in transitSteps) {
+        if (step.fare != null) {
+          totalFare += step.fare!;
+          // Debug print to verify fare values
+          print('Step fare: ${step.fare}');
+        }
+      }
+    }
+    // Debug print to verify total fare
+    print('Total fare: $totalFare');
+    return totalFare;
+  }
+
+  Future<void> startNavigation(
+      BuildContext context, DirectionDetailsInfo directionDetails) async {
     final result = await Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) =>
-                NavigationPage(directionDetailsInfo: directionDetails)));
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            NavigationPage(directionDetailsInfo: directionDetails),
+      ),
+    );
 
     if (result != null && result == "Trip Completed") {
       showRatingDialog(); // Call the function that shows the rating interface
@@ -756,6 +834,17 @@ class _HomePageState extends State<HomePage> {
     var destinationPosition =
         Provider.of<appInfo>(context, listen: false).userDestinationLocation;
 
+    MapEntry<String, LatLng>? nearestDriverEntry = getNearestDriverEntry();
+    if (nearestDriverEntry == null) {
+      print("No nearest driver found");
+      return;
+    }
+
+    String nearestDriverKey = nearestDriverEntry.key;
+    DriverDetails driverDetails = await getDriverDetails(nearestDriverKey);
+    String carType =
+        driverDetails.carType; // Fetching carType from driver details
+
     var originLatLng = LatLng(
         originPosition!.locationLatitude!, originPosition.locationLongitude!);
     var destinationLatLng = LatLng(destinationPosition!.locationLatitude!,
@@ -769,7 +858,7 @@ class _HomePageState extends State<HomePage> {
 
     var directionsList =
         await assistantMethods.obtainOriginToDestinationDirectionDetails(
-            originLatLng, destinationLatLng);
+            originLatLng, destinationLatLng, carType); // Now passing carType
 
     Navigator.pop(context);
 
@@ -778,7 +867,18 @@ class _HomePageState extends State<HomePage> {
       return;
     }
 
-    showRouteSelectionSheet(context, directionsList);
+    // Assuming showRouteSelectionSheet is ready to handle carType if needed
+    showRouteSelectionSheet(
+      context,
+      directionsList,
+      calculateTotalFare,
+      (context, info, directionsList) =>
+          _drawSelectedRoute(context, info, directionsList),
+      (context, info, directionsList, trafficInfo, carType) =>
+          _showRouteInfoBottomSheet(
+              context, info, directionsList, trafficInfo, carType),
+      carType, // Pass carType to showRouteSelectionSheet
+    );
   }
 
   LatLngBounds _calculateLatLngBounds(List<LatLng> polylineCoordinates) {

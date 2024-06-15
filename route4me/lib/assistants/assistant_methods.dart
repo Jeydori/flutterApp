@@ -8,7 +8,16 @@ import 'package:route4me/global/global.dart';
 import 'package:route4me/global/map_key.dart';
 import 'package:route4me/info%20handler/app_info.dart';
 import 'package:route4me/models/direction_infos.dart';
+import 'package:route4me/models/fare_chart.dart';
 import 'package:route4me/models/user_model.dart';
+
+double computeFare(String type, String category, double distance) {
+  List<double>? fares = fareCharts[type]![category];
+  int distIndex = (distance.ceil() > fares!.length)
+      ? fares.length - 1
+      : distance.ceil() - 1;
+  return fares[distIndex];
+}
 
 class assistantMethods {
   static Future<UserModel> readCurrentOnlineUserInfo() async {
@@ -96,8 +105,8 @@ class assistantMethods {
   }
 
   static Future<List<DirectionDetailsInfo>>
-      obtainOriginToDestinationDirectionDetails(
-          LatLng originPosition, LatLng destinationPosition) async {
+      obtainOriginToDestinationDirectionDetails(LatLng originPosition,
+          LatLng destinationPosition, String carType) async {
     String urlOriginToDestinationDirectionDetails =
         "https://maps.googleapis.com/maps/api/directions/json?origin=${originPosition.latitude},${originPosition.longitude}&destination=${destinationPosition.latitude},${destinationPosition.longitude}&mode=transit&alternatives=true&key=$mapKey";
     var responseDirectionApi = await RequestAssistant.receiveRequest(
@@ -116,16 +125,18 @@ class assistantMethods {
         distance_value: (route["legs"][0]["distance"]["value"]).toDouble(),
         duration_text: route["legs"][0]["duration"]["text"],
         duration_value: route["legs"][0]["duration"]["value"],
-        fare: route["fare"] != null ? route["fare"]["text"] : null,
         steps: route["legs"][0]["steps"],
       );
 
-      // Parse transit steps
       List<TransitInfo> transitSteps = [];
       for (var step in directionDetailsInfo.steps!) {
         if (step["travel_mode"] == "TRANSIT") {
-          TransitInfo transitInfo = TransitInfo(
-            vehicleType: step["transit_details"]["line"]["vehicle"]["type"],
+          String distanceText = step["distance"]["text"];
+          double distanceInKm = double.parse(distanceText.split(' ')[0]);
+          double fare = computeFare(carType, "Regular", distanceInKm);
+
+          transitSteps.add(TransitInfo(
+            vehicleType: carType,
             lineName: step["transit_details"]["line"]["short_name"] ??
                 step["transit_details"]["line"]["name"],
             agencyName: step["transit_details"]["line"]["agencies"][0]["name"],
@@ -142,12 +153,12 @@ class assistantMethods {
               step["transit_details"]["arrival_stop"]["location"]["lng"],
             ),
             numberOfStops: step["transit_details"]["num_stops"],
-          );
-          transitSteps.add(transitInfo);
+            fare: fare,
+            distanceText: step["distance"]["text"],
+          ));
         }
       }
       directionDetailsInfo.transitSteps = transitSteps;
-
       directionsList.add(directionDetailsInfo);
     }
 

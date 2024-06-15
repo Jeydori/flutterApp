@@ -4,30 +4,44 @@ class DirectionDetailsInfo {
   String? e_points;
   String? distance_text;
   double distance_value;
-  String? duration_text;
+  String duration_text;
   int? duration_value;
   String? duration_in_traffic_text;
   int? duration_in_traffic_value;
   List<dynamic>? steps;
   List<TransitInfo>? transitSteps;
-  String? fare;
-  double? destinationLatitude; // Added for destination latitude
-  double? destinationLongitude; // Added for destination longitude
+  double? destinationLatitude;
+  double? destinationLongitude;
 
   DirectionDetailsInfo({
     this.e_points,
     this.distance_text,
     required this.distance_value,
-    this.duration_text,
+    required this.duration_text,
     this.duration_value,
     this.duration_in_traffic_text,
     this.duration_in_traffic_value,
     this.steps,
     this.transitSteps,
-    this.fare,
-    this.destinationLatitude, // Initialize in constructor
+    this.destinationLatitude,
     this.destinationLongitude,
   });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'e_points': e_points,
+      'distance_text': distance_text,
+      'distance_value': distance_value,
+      'duration_text': duration_text,
+      'duration_value': duration_value,
+      'duration_in_traffic_text': duration_in_traffic_text,
+      'duration_in_traffic_value': duration_in_traffic_value,
+      'steps': steps,
+      'transitSteps': transitSteps?.map((t) => t.toJson()).toList(),
+      'destinationLatitude': destinationLatitude,
+      'destinationLongitude': destinationLongitude,
+    };
+  }
 }
 
 class TransitInfo {
@@ -41,6 +55,8 @@ class TransitInfo {
   final LatLng departureLocation;
   final LatLng? arrivalLocation;
   final int? numberOfStops;
+  final double? fare;
+  final String? distanceText;
 
   TransitInfo({
     this.vehicleType,
@@ -53,5 +69,30 @@ class TransitInfo {
     required this.departureLocation,
     this.arrivalLocation,
     this.numberOfStops,
+    this.fare,
+    this.distanceText,
   });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'vehicleType': vehicleType,
+      'lineName': lineName,
+      'agencyName': agencyName,
+      'departureStop': departureStop,
+      'arrivalStop': arrivalStop,
+      'departureTime': departureTime,
+      'arrivalTime': arrivalTime,
+      'departureLocation': {
+        'lat': departureLocation.latitude,
+        'lng': departureLocation.longitude,
+      },
+      'arrivalLocation': {
+        'lat': arrivalLocation?.latitude,
+        'lng': arrivalLocation?.longitude,
+      },
+      'numberOfStops': numberOfStops,
+      'fare': fare,
+      'distanceText': distanceText,
+    };
+  }
 }
