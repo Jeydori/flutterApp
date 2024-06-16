@@ -10,7 +10,8 @@ class RouteSelectionSheet extends StatefulWidget {
       DirectionDetailsInfo?, String) showRouteInfoBottomSheet;
   final String carType; // Add carType parameter
 
-  const RouteSelectionSheet({super.key, 
+  const RouteSelectionSheet({
+    super.key,
     required this.directionsList,
     required this.calculateTotalFare,
     required this.drawSelectedRoute,
@@ -35,11 +36,12 @@ class _RouteSelectionSheetState extends State<RouteSelectionSheet> {
   Widget build(BuildContext context) {
     List<DirectionDetailsInfo> sortedList = List.from(widget.directionsList);
     if (sortByDuration) {
-      sortedList.sort((a, b) => a.duration_value!.compareTo(b.duration_value!));
+      sortedList.sort(
+          (a, b) => a.duration_value?.compareTo(b.duration_value ?? 0) ?? 0);
     } else {
       sortedList.sort((a, b) => widget
-          .calculateTotalFare(a.transitSteps)
-          .compareTo(widget.calculateTotalFare(b.transitSteps)));
+          .calculateTotalFare(a.transitSteps ?? [])
+          .compareTo(widget.calculateTotalFare(b.transitSteps ?? [])));
     }
 
     return Container(
@@ -82,9 +84,18 @@ class _RouteSelectionSheetState extends State<RouteSelectionSheet> {
           const SizedBox(height: 10),
           Center(
             child: ToggleButtons(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius:
+                  BorderRadius.circular(10), // Sets border radius to 10
+              fillColor:
+                  Colors.orange.shade50, // Background color when selected
+              selectedBorderColor:
+                  Colors.orange.shade600, // Border color when selected
+              borderColor: Colors.orange.shade600, // Normal border color
+              borderWidth: 2, // Border width
               onPressed: (int index) {
-                toggleSortCriteria();
+                setState(() {
+                  sortByDuration = index == 0;
+                });
               },
               isSelected: [sortByDuration, !sortByDuration],
               children: const <Widget>[
@@ -105,7 +116,8 @@ class _RouteSelectionSheetState extends State<RouteSelectionSheet> {
               itemCount: sortedList.length,
               itemBuilder: (ctx, index) {
                 var info = sortedList[index];
-                double totalFare = widget.calculateTotalFare(info.transitSteps);
+                double totalFare =
+                    widget.calculateTotalFare(info.transitSteps ?? []);
                 return Container(
                   margin: const EdgeInsets.only(bottom: 10),
                   decoration: BoxDecoration(
@@ -114,27 +126,19 @@ class _RouteSelectionSheetState extends State<RouteSelectionSheet> {
                     borderRadius: BorderRadius.circular(8.0),
                   ),
                   child: ListTile(
-                    title: Text('Route ${index + 1}'),
                     subtitle: Text(
-                      'Distance: ${info.distance_text}, Duration: ${info.duration_text}, Fare: ₱${totalFare.toStringAsFixed(2)}',
+                      'Distance: ${info.distance_text ?? "Not available"}, Duration: ${info.duration_text ?? "Not available"}, Fare: ₱${totalFare.toStringAsFixed(2)}',
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     onTap: () {
-                      print("Route selected: ${info.distance_text}");
-                      Navigator.pop(ctx); // Close route selection sheet
                       widget.drawSelectedRoute(
                           context, info, widget.directionsList);
-                      widget.showRouteInfoBottomSheet(
-                          context,
-                          info,
-                          widget.directionsList,
-                          null,
-                          widget.carType); // Use carType from widget
                     },
                   ),
                 );
               },
             ),
-          ),
+          )
         ],
       ),
     );

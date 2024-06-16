@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:route4me/pages/profile_page.dart';
+import 'package:route4me/services/acc_deletion.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -33,26 +34,7 @@ class SettingsPage extends StatelessWidget {
             const SizedBox(height: 20.0),
             ElevatedButton(
               onPressed: () {
-                Navigator.pop(context);
-              },
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                backgroundColor: Colors.orange[600],
-              ),
-              child: const Text(
-                "Notifications",
-                style: TextStyle(
-                  fontWeight: FontWeight.normal,
-                  fontSize: 16,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
+                _showPrivacyPolicy(context);
               },
               style: ElevatedButton.styleFrom(
                 shape: RoundedRectangleBorder(
@@ -71,7 +53,7 @@ class SettingsPage extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () {
-                Navigator.pop(context);
+                _showSecurityInfo(context);
               },
               style: ElevatedButton.styleFrom(
                 shape: RoundedRectangleBorder(
@@ -90,7 +72,7 @@ class SettingsPage extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () {
-                Navigator.pop(context);
+                _showAboutUs(context);
               },
               style: ElevatedButton.styleFrom(
                 shape: RoundedRectangleBorder(
@@ -140,7 +122,7 @@ class SettingsPage extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () {
-                Navigator.pop(context);
+                AccountManagement.showDeleteConfirmation(context);
               },
               style: ElevatedButton.styleFrom(
                 shape: RoundedRectangleBorder(
@@ -149,7 +131,7 @@ class SettingsPage extends StatelessWidget {
                 backgroundColor: Colors.orange[600],
               ),
               child: const Text(
-                "Deletion",
+                "Delete Account",
                 style: TextStyle(
                   fontWeight: FontWeight.normal,
                   fontSize: 16,
@@ -166,4 +148,130 @@ class SettingsPage extends StatelessWidget {
       ),
     );
   }
+}
+
+void _showPrivacyPolicy(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text(
+          'Privacy Policy',
+          textAlign: TextAlign.center,
+        ),
+        content: SingleChildScrollView(
+          child: ListBody(
+            children: const <Widget>[
+              Text(
+                'We take your privacy seriously. This means we only collect personal information that is necessary to provide you with our service. You will always have choices about what information you share and how we use it.',
+                textAlign: TextAlign.center,
+              ),
+              Text(
+                'We will never sell your personal information to third parties, and we will take appropriate security measures to protect your data.',
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+          side: BorderSide(color: Colors.orange, width: 2),
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: const Text(
+              'Close',
+              style: TextStyle(color: Colors.orange),
+            ),
+            onPressed: () {
+              Navigator.of(context).pop(); // Close the dialog
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
+
+void _showAboutUs(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text(
+          'About Us',
+          textAlign: TextAlign.center,
+        ),
+        content: SingleChildScrollView(
+          child: ListBody(
+            children: <Widget>[
+              Image.asset('lib/images/route4me logo.png'),
+              const Text(
+                'Our team of developers has poured their expertise into creating these options, allowing you to customize features and optimize your workflow. We\'re constantly working to improve Route4Me. If you have any suggestions, please don\'t hesitate to send us feedback through the app.',
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+          side: const BorderSide(color: Colors.orange, width: 2),
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: const Text(
+              'Close',
+              style: TextStyle(color: Colors.orange),
+            ),
+            onPressed: () {
+              Navigator.of(context).pop(); // Close the dialog
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
+
+void _showSecurityInfo(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text(
+          'Security Information',
+          textAlign: TextAlign.center,
+        ),
+        content: SingleChildScrollView(
+          child: ListBody(
+            children: const <Widget>[
+              Text(
+                'Your security is our top priority. We use industry-standard encryption to protect your data at rest and in transit. Our application ensures secure connections to prevent unauthorized access.',
+                textAlign: TextAlign.center,
+              ),
+              Text(
+                'For your safety, always keep your software updated and be cautious of unsolicited requests asking for your personal information.',
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+          side: const BorderSide(color: Colors.orange, width: 2),
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: const Text(
+              'Close',
+              style: TextStyle(color: Colors.orange),
+            ),
+            onPressed: () {
+              Navigator.of(context).pop(); // Close the dialog
+            },
+          ),
+        ],
+      );
+    },
+  );
 }

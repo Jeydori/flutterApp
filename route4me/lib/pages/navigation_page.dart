@@ -87,7 +87,7 @@ class _NavigationPageState extends State<NavigationPage> {
 
   void _loadCustomIcon() {
     BitmapDescriptor.fromAssetImage(
-            const ImageConfiguration(size: Size(1, 1)), 'lib/images/JEEP.png')
+            const ImageConfiguration(size: Size(1, 1)), 'lib/images/jeep.png')
         .then((icon) {
       setState(() {
         userLocationIcon = icon;
@@ -158,10 +158,13 @@ class _NavigationPageState extends State<NavigationPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Navigation'),
+        title: const Text(
+          'Navigation',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.stop),
+            icon: const Icon(Icons.close_rounded),
             onPressed: _stopNavigation,
           ),
         ],
@@ -196,7 +199,8 @@ class _NavigationPageState extends State<NavigationPage> {
   }
 
   void _slantCamera() {
-    _mapController?.animateCamera(CameraUpdate.newCameraPosition(const CameraPosition(
+    _mapController
+        ?.animateCamera(CameraUpdate.newCameraPosition(const CameraPosition(
       target: LatLng(14.599512, 120.984222),
       zoom: 14.4746,
       tilt: 45.0,

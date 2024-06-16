@@ -202,19 +202,66 @@ class _HomePageState extends State<HomePage> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text(
-                      "Name: ${driverDetails.firstName} ${driverDetails.lastName}"),
-                  Text("Contact email: ${driverDetails.email}"),
-                  Text('PUV: ${driverDetails.carType}'),
-                  Text('Plate Number: ${driverDetails.carPlate}'),
-                  Text("Latitude: $latitude"),
-                  Text("Longitude: $longitude"),
+                  Container(
+                    padding: EdgeInsets.all(10),
+                    margin: EdgeInsets.only(
+                        bottom: 8), // Adds spacing between containers
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.orange, width: 2),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      "Name: ${driverDetails.firstName} ${driverDetails.lastName}",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  Container(
+                    padding: EdgeInsets.all(10),
+                    margin: EdgeInsets.only(bottom: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.orange, width: 2),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      "Contact email: ${driverDetails.email}",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  Container(
+                    padding: EdgeInsets.all(10),
+                    margin: EdgeInsets.only(bottom: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.orange, width: 2),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      "PUV: ${driverDetails.carType}",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  Container(
+                    padding: EdgeInsets.all(10),
+                    margin: EdgeInsets.only(bottom: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.orange, width: 2),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      "Plate Number: ${driverDetails.carPlate}",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
                 ],
               ),
             ),
           );
         },
       );
+
       setState(() {
         markerSet.add(marker);
         activeDrivers[key] = driverPosition; // Update active drivers map
@@ -259,25 +306,72 @@ class _HomePageState extends State<HomePage> {
           showCustomBottomSheet(
             barrierColor: Colors.transparent,
             context: context,
-            title: "Driver Moved",
+            title: "Driver Information",
             content: Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text(
-                      "Name: ${driverDetails.firstName} ${driverDetails.lastName}"),
-                  Text("Contact email: ${driverDetails.email}"),
-                  Text('PUV: ${driverDetails.carType}'),
-                  Text('Plate Number: ${driverDetails.carPlate}'),
-                  Text("Latitude: $latitude"),
-                  Text("Longitude: $longitude"),
+                  Container(
+                    padding: EdgeInsets.all(10),
+                    margin: EdgeInsets.only(
+                        bottom: 8), // Adds spacing between containers
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.orange, width: 2),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      "Name: ${driverDetails.firstName} ${driverDetails.lastName}",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  Container(
+                    padding: EdgeInsets.all(10),
+                    margin: EdgeInsets.only(bottom: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.orange, width: 2),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      "Contact email: ${driverDetails.email}",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  Container(
+                    padding: EdgeInsets.all(10),
+                    margin: EdgeInsets.only(bottom: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.orange, width: 2),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      "PUV: ${driverDetails.carType}",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  Container(
+                    padding: EdgeInsets.all(10),
+                    margin: EdgeInsets.only(bottom: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.orange, width: 2),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      "Plate Number: ${driverDetails.carPlate}",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
                 ],
               ),
             ),
           );
         },
       );
+
       setState(() {
         markerSet.removeWhere((m) => m.markerId.value == key);
         markerSet.add(marker);
@@ -462,12 +556,16 @@ class _HomePageState extends State<HomePage> {
             nearestDriverPosition, firstDeparturePosition);
 
         // Debug print to check trafficInfo
-        print("Traffic Info Duration Text: ${trafficInfo?.duration_text}");
+        print("Traffic Info Duration Text: ${trafficInfo.duration_text}");
         if (trafficInfo != null) {
-          drawDriverToDeparturePolyline(
-              nearestDriverPosition, firstDeparturePosition, trafficInfo);
-          // Show the popup dialog with the arrival time
-          showPUVArrivalDialog(trafficInfo.duration_text);
+          Future.delayed(Duration(milliseconds: 300), () {
+            if (mounted) {
+              // Ensure the widget is still mounted
+              drawDriverToDeparturePolyline(
+                  nearestDriverPosition, firstDeparturePosition, trafficInfo!);
+              showPUVArrivalDialog(trafficInfo.duration_text);
+            }
+          });
         }
       }
 
@@ -489,7 +587,8 @@ class _HomePageState extends State<HomePage> {
 
     showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) {
+        // Use a unique context name here
         return Dialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
@@ -532,7 +631,8 @@ class _HomePageState extends State<HomePage> {
                   padding: EdgeInsets.all(5), // Minimal padding around the icon
                   icon: Icon(Icons.close),
                   onPressed: () {
-                    Navigator.of(context).pop(); // Close the dialog
+                    Navigator.of(dialogContext)
+                        .pop(); // Use dialogContext to close only the dialog
                   },
                 ),
               ),
@@ -693,8 +793,8 @@ class _HomePageState extends State<HomePage> {
                           '₱${transitStep?.fare?.toStringAsFixed(2) ?? "0.00"}';
                     }
                     String stepDetails = stepTitle == "Walk"
-                        ? 'Walk ${step["distance"]["text"]} - ${step["duration"]["text"]}'
-                        : '${step["transit_details"]["line"]["vehicle"]["name"]} ${step["distance"]["text"]} from ${step["transit_details"]["departure_stop"]["name"]} to ${step["transit_details"]["arrival_stop"]["name"]}';
+                        ? 'Walk ${step["distance"]["text"]}'
+                        : 'Transit ${step["distance"]["text"]} from ${step["transit_details"]["departure_stop"]["name"]} to ${step["transit_details"]["arrival_stop"]["name"]}';
 
                     return ListTile(
                       leading: Icon(
@@ -732,18 +832,8 @@ class _HomePageState extends State<HomePage> {
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: () {
-                    Navigator.pop(context); // Dismiss the bottom sheet first
-                    Future.delayed(Duration(milliseconds: 100), () {
-                      // Wait a bit before navigating
-                      showRouteSelectionSheet(
-                        context,
-                        directionsList,
-                        calculateTotalFare,
-                        drawSelectedRoute,
-                        showRouteInfoBottomSheet,
-                        carType,
-                      );
-                    });
+                    Navigator.pop(context); // Close the bottom sheet first
+                    // Add a slight delay to ensure the modal is completely closed before reopening another
                   },
                   child: Text("Choose another route",
                       style: TextStyle(
@@ -801,33 +891,103 @@ class _HomePageState extends State<HomePage> {
       ),
     );
 
-    if (result != null && result == "Trip Completed") {
+    if (result == "Trip Completed") {
       showRatingDialog(context);
     }
   }
 
   void showRatingDialog(BuildContext context) {
+    int rating = 0;
+    TextEditingController commentController = TextEditingController();
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Rate the Trip"),
-          content: Text("Please rate your trip experience."),
-          actions: <Widget>[
-            TextButton(
-              child: Text("Cancel"),
-              onPressed: () {
-                Navigator.of(context).pop(); // Closes the dialog
-              },
-            ),
-            TextButton(
-              child: Text("Submit"),
-              onPressed: () {
-                // Handle the submission of the rating here
-                Navigator.of(context).pop(); // Closes the dialog
-              },
-            ),
-          ],
+        return StatefulBuilder(
+          // Allows updates to dialog's content
+          builder: (context, setState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                // Set the shape of the AlertDialog
+                borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                side: BorderSide(
+                    color: Colors.orange[600]!,
+                    width: 2), // Orange border for the dialog
+              ),
+              title: Text(
+                "Rate the Driver",
+                textAlign: TextAlign.center, // Center-align the title
+                style: TextStyle(
+                  fontWeight: FontWeight.bold, // Optional: make the title bold
+                ),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center, // Center content
+                children: [
+                  Wrap(
+                    alignment: WrapAlignment.center, // Center-align the wrap
+                    spacing: 0, // Remove space between stars
+                    children: List<Widget>.generate(5, (index) {
+                      return IconButton(
+                        iconSize: 20, // Reduce icon size if needed
+                        icon: Icon(
+                          index < rating ? Icons.star : Icons.star_border,
+                          color: Colors.amber,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            rating = index + 1; // Update the rating state
+                          });
+                        },
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 0), // Tighter horizontal padding
+                      );
+                    }),
+                  ),
+                  SizedBox(
+                      height: 16), // Vertical spacing before the text field
+                  TextField(
+                    controller: commentController,
+                    decoration: InputDecoration(
+                      hintText: "Add a comment...",
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Colors.orange,
+                          width: 1.5, // Orange border for the text field
+                        ),
+                      ),
+                    ),
+                    maxLines: 2,
+                  ),
+                ],
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: Text("Cancel"),
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Closes the dialog
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor:
+                        Colors.orange, // Text color for the Cancel button
+                  ),
+                ),
+                TextButton(
+                  child: Text("Submit"),
+                  onPressed: () {
+                    print(
+                        "Rating: $rating, Comment: ${commentController.text}");
+                    Navigator.of(context).pop(); // Closes the dialog
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor:
+                        Colors.orange, // Text color for the Submit button
+                  ),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -845,7 +1005,7 @@ class _HomePageState extends State<HomePage> {
     Polyline driverRoute = Polyline(
       polylineId: PolylineId("driverRoute"),
       points: polylineCoordinates,
-      color: Colors.yellow.shade600, // Color for driver route
+      color: Colors.amber, // Color for driver route
       width: 5,
     );
 
