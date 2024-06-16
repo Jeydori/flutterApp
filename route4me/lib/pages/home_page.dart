@@ -13,9 +13,9 @@ import 'package:route4me/global/global.dart';
 import 'package:provider/provider.dart';
 import 'package:route4me/info handler/app_info.dart';
 import 'package:route4me/components/progress_dialog.dart';
+import 'package:route4me/main.dart';
 import 'package:route4me/models/direction_infos.dart';
 import 'package:route4me/models/driver_details.dart';
-import 'package:route4me/models/fare_chart.dart';
 import 'package:route4me/pages/navigation_page.dart';
 import 'package:route4me/pages/search_page.dart';
 import 'package:route4me/services/precise_pickup_location.dart';
@@ -71,7 +71,7 @@ class _HomePageState extends State<HomePage> {
 
   void addCustomIcon() {
     BitmapDescriptor.fromAssetImage(
-            ImageConfiguration(size: Size(1, 1)), 'lib/images/JEEP.png')
+            ImageConfiguration(size: Size(1, 1)), 'lib/images/jeep.png')
         .then((icon) {
       setState(() {
         activeNearbyIcon = icon;
@@ -439,7 +439,7 @@ class _HomePageState extends State<HomePage> {
 
       // Set map bounds around the new polyline
       LatLngBounds boundsLatLng = _calculateLatLngBounds(polylineCoordinates);
-      newGoogleMapController!
+      await newGoogleMapController!
           .animateCamera(CameraUpdate.newLatLngBounds(boundsLatLng, 70));
 
       // Adding start and end circles for the route
@@ -461,22 +461,86 @@ class _HomePageState extends State<HomePage> {
         trafficInfo = await assistantMethods.fetchDriverToDepartureDetails(
             nearestDriverPosition, firstDeparturePosition);
 
-        // Update UI with route info and optionally traffic info
+        // Debug print to check trafficInfo
+        print("Traffic Info Duration Text: ${trafficInfo?.duration_text}");
         if (trafficInfo != null) {
           drawDriverToDeparturePolyline(
               nearestDriverPosition, firstDeparturePosition, trafficInfo);
+          // Show the popup dialog with the arrival time
+          showPUVArrivalDialog(trafficInfo.duration_text);
         }
       }
 
-      // Display route info on a bottom sheet
-      _showRouteInfoBottomSheet(context, directionDetailsInfo, directionsList,
-          trafficInfo, driverDetails.carType);
-    } else {
-      // Handle the case when no nearest driver is found
-      print("No nearest driver found");
+      // Use mounted check before updating UI
+      if (mounted) {
+        setState(() {
+          // Call to show the route info bottom sheet is still here, ensuring that the sheet is updated as originally designed
+          _showRouteInfoBottomSheet(context, directionDetailsInfo,
+              directionsList, driverDetails.carType);
+        });
+      } else {
+        print("Widget is not mounted, skip updating the state.");
+      }
     }
+  }
 
-    setState(() {}); // Trigger a UI update to refresh the map with new elements
+  void showPUVArrivalDialog(String duration) {
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+            side: BorderSide(color: Colors.orange.shade600, width: 2),
+          ),
+          child: Stack(
+            children: [
+              Container(
+                padding: EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Center(
+                      child: RichText(
+                        textAlign: TextAlign.center,
+                        text: TextSpan(
+                          style: TextStyle(fontSize: 16, color: Colors.black),
+                          children: <TextSpan>[
+                            TextSpan(
+                                text:
+                                    'The nearest PUV will arrive to your first departure in '),
+                            TextSpan(
+                              text: duration,
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            TextSpan(text: '.'),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Positioned(
+                right: 0,
+                child: IconButton(
+                  padding: EdgeInsets.all(5), // Minimal padding around the icon
+                  icon: Icon(Icons.close),
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close the dialog
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   void _addStartAndEndCircles(List<LatLng> polylineCoordinates) {
@@ -485,7 +549,7 @@ class _HomePageState extends State<HomePage> {
       Circle startCircle = Circle(
         circleId: CircleId('start_circle'),
         center: polylineCoordinates.first,
-        radius: 100,
+        radius: 20,
         fillColor: Colors.green,
         strokeWidth: 1,
         strokeColor: Colors.white,
@@ -557,7 +621,6 @@ class _HomePageState extends State<HomePage> {
       BuildContext context,
       DirectionDetailsInfo directionDetailsInfo,
       List<DirectionDetailsInfo> directionsList,
-      DirectionDetailsInfo? trafficInfo,
       String carType) {
     // Calculate the total fare for all transit steps
     double totalTransitFare =
@@ -586,10 +649,6 @@ class _HomePageState extends State<HomePage> {
               Text('Total Fare: ₱${totalTransitFare.toStringAsFixed(2)}',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               SizedBox(height: 10),
-              if (trafficInfo != null)
-                Text(
-                    'Time from driver to first stop: ${trafficInfo.duration_text}',
-                    style: TextStyle(fontSize: 16)),
               SizedBox(height: 10),
               Text('Detailed Steps:',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
@@ -673,18 +732,18 @@ class _HomePageState extends State<HomePage> {
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: () {
-                    print("Choosing another route");
-                    Navigator.pop(context); // Close this details sheet
-                    showRouteSelectionSheet(
-                      context,
-                      directionsList,
-                      calculateTotalFare,
-                      (ctx, info, list) => _drawSelectedRoute(ctx, info, list),
-                      (ctx, info, list, traffic, carType) =>
-                          _showRouteInfoBottomSheet(
-                              ctx, info, list, traffic, carType),
-                      carType, // Pass the carType
-                    ); // Show route options again
+                    Navigator.pop(context); // Dismiss the bottom sheet first
+                    Future.delayed(Duration(milliseconds: 100), () {
+                      // Wait a bit before navigating
+                      showRouteSelectionSheet(
+                        context,
+                        directionsList,
+                        calculateTotalFare,
+                        drawSelectedRoute,
+                        showRouteInfoBottomSheet,
+                        carType,
+                      );
+                    });
                   },
                   child: Text("Choose another route",
                       style: TextStyle(
@@ -695,12 +754,12 @@ class _HomePageState extends State<HomePage> {
               Align(
                 alignment: Alignment.center,
                 child: ElevatedButton(
-                  onPressed: () async {
+                  onPressed: () {
                     print(
                         "Starting navigation for: ${directionDetailsInfo.distance_text}");
-                    Navigator.pop(context); // Close the bottom sheet
-                    await startNavigation(context,
-                        directionDetailsInfo); // Ensure this method navigates to the navigation page
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      startNavigation(context, directionDetailsInfo);
+                    });
                   },
                   child: Text("Start Navigation",
                       style: TextStyle(color: Colors.black)),
@@ -735,8 +794,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> startNavigation(
       BuildContext context, DirectionDetailsInfo directionDetails) async {
-    final result = await Navigator.push(
-      context,
+    final result = await navigatorKey.currentState?.push(
       MaterialPageRoute(
         builder: (context) =>
             NavigationPage(directionDetailsInfo: directionDetails),
@@ -744,29 +802,29 @@ class _HomePageState extends State<HomePage> {
     );
 
     if (result != null && result == "Trip Completed") {
-      showRatingDialog(); // Call the function that shows the rating interface
+      showRatingDialog(context);
     }
   }
 
-  void showRatingDialog() {
+  void showRatingDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Rate the Vehicle"),
-          content: Text("Please provide your rating for the trip."),
+          title: Text("Rate the Trip"),
+          content: Text("Please rate your trip experience."),
           actions: <Widget>[
-            TextButton(
-              child: Text("Submit"),
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-                // Here you can handle the submission logic
-              },
-            ),
             TextButton(
               child: Text("Cancel"),
               onPressed: () {
-                Navigator.of(context).pop(); // Simply close the dialog
+                Navigator.of(context).pop(); // Closes the dialog
+              },
+            ),
+            TextButton(
+              child: Text("Submit"),
+              onPressed: () {
+                // Handle the submission of the rating here
+                Navigator.of(context).pop(); // Closes the dialog
               },
             ),
           ],
@@ -875,8 +933,7 @@ class _HomePageState extends State<HomePage> {
       (context, info, directionsList) =>
           _drawSelectedRoute(context, info, directionsList),
       (context, info, directionsList, trafficInfo, carType) =>
-          _showRouteInfoBottomSheet(
-              context, info, directionsList, trafficInfo, carType),
+          _showRouteInfoBottomSheet(context, info, directionsList, carType),
       carType, // Pass carType to showRouteSelectionSheet
     );
   }

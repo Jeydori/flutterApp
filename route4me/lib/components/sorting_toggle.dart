@@ -10,7 +10,7 @@ class RouteSelectionSheet extends StatefulWidget {
       DirectionDetailsInfo?, String) showRouteInfoBottomSheet;
   final String carType; // Add carType parameter
 
-  RouteSelectionSheet({
+  const RouteSelectionSheet({super.key, 
     required this.directionsList,
     required this.calculateTotalFare,
     required this.drawSelectedRoute,
@@ -43,8 +43,8 @@ class _RouteSelectionSheetState extends State<RouteSelectionSheet> {
     }
 
     return Container(
-      padding: EdgeInsets.only(top: 20, bottom: 20),
-      decoration: BoxDecoration(
+      padding: const EdgeInsets.only(top: 20, bottom: 20),
+      decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
       ),
@@ -56,7 +56,7 @@ class _RouteSelectionSheetState extends State<RouteSelectionSheet> {
             child: Container(
               width: 40,
               height: 5,
-              margin: EdgeInsets.symmetric(vertical: 8),
+              margin: const EdgeInsets.symmetric(vertical: 8),
               decoration: BoxDecoration(
                 color: Colors.grey[300],
                 borderRadius: BorderRadius.circular(10),
@@ -66,8 +66,8 @@ class _RouteSelectionSheetState extends State<RouteSelectionSheet> {
           Container(
             width: double.infinity,
             color: Colors.orange.shade600,
-            padding: EdgeInsets.symmetric(vertical: 8),
-            child: Center(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: const Center(
               child: Text(
                 "Choose a Route",
                 style: TextStyle(
@@ -79,27 +79,27 @@ class _RouteSelectionSheetState extends State<RouteSelectionSheet> {
               ),
             ),
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Center(
             child: ToggleButtons(
               borderRadius: BorderRadius.circular(10),
-              children: <Widget>[
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Text("Fastest"),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Text("Cheapest"),
-                ),
-              ],
               onPressed: (int index) {
                 toggleSortCriteria();
               },
               isSelected: [sortByDuration, !sortByDuration],
+              children: const <Widget>[
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Text("Fastest"),
+                ),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Text("Cheapest"),
+                ),
+              ],
             ),
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Expanded(
             child: ListView.builder(
               itemCount: sortedList.length,
@@ -107,7 +107,7 @@ class _RouteSelectionSheetState extends State<RouteSelectionSheet> {
                 var info = sortedList[index];
                 double totalFare = widget.calculateTotalFare(info.transitSteps);
                 return Container(
-                  margin: EdgeInsets.only(bottom: 10),
+                  margin: const EdgeInsets.only(bottom: 10),
                   decoration: BoxDecoration(
                     border:
                         Border.all(color: Colors.orange.shade600, width: 2.0),

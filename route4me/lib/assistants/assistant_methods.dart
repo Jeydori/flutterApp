@@ -203,8 +203,7 @@ class assistantMethods {
     );
 
     // Debug prints to ensure correct values
-    print("Fetched DirectionDetailsInfo: $directionDetailsInfo");
-
-    return directionDetailsInfo;
+    print("Fetched trafficInfo: $directionDetailsInfo");
+      return directionDetailsInfo;
   }
 }

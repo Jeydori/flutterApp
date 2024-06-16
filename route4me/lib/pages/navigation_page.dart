@@ -9,7 +9,7 @@ import 'package:route4me/models/direction_infos.dart';
 class NavigationPage extends StatefulWidget {
   final DirectionDetailsInfo directionDetailsInfo;
 
-  NavigationPage({required this.directionDetailsInfo});
+  const NavigationPage({super.key, required this.directionDetailsInfo});
 
   @override
   _NavigationPageState createState() => _NavigationPageState();
@@ -20,8 +20,8 @@ class _NavigationPageState extends State<NavigationPage> {
   StreamSubscription<Position>? _positionStreamSubscription;
 
   Position? _currentPosition;
-  Set<Polyline> _polylines = Set<Polyline>();
-  Set<Marker> _markers = Set<Marker>();
+  final Set<Polyline> _polylines = <Polyline>{};
+  final Set<Marker> _markers = <Marker>{};
   bool _isNavigating = true;
   BitmapDescriptor? userLocationIcon;
   String _distanceText = "";
@@ -57,10 +57,10 @@ class _NavigationPageState extends State<NavigationPage> {
 
   void _updateUserLocationMarker(LatLng currentLatLng) {
     Marker currentLocationMarker = Marker(
-      markerId: MarkerId('currentLocation'),
+      markerId: const MarkerId('currentLocation'),
       position: currentLatLng,
       icon: userLocationIcon ?? BitmapDescriptor.defaultMarker,
-      anchor: Offset(0.5, 1),
+      anchor: const Offset(0.5, 1),
     );
 
     setState(() {
@@ -70,7 +70,7 @@ class _NavigationPageState extends State<NavigationPage> {
   }
 
   void _initLocationService() {
-    LocationSettings locationSettings = LocationSettings(
+    LocationSettings locationSettings = const LocationSettings(
       accuracy: LocationAccuracy.bestForNavigation,
       distanceFilter: 10,
     );
@@ -87,7 +87,7 @@ class _NavigationPageState extends State<NavigationPage> {
 
   void _loadCustomIcon() {
     BitmapDescriptor.fromAssetImage(
-            ImageConfiguration(size: Size(1, 1)), 'lib/images/JEEP.png')
+            const ImageConfiguration(size: Size(1, 1)), 'lib/images/JEEP.png')
         .then((icon) {
       setState(() {
         userLocationIcon = icon;
@@ -135,15 +135,15 @@ class _NavigationPageState extends State<NavigationPage> {
 
     setState(() {
       _polylines.add(Polyline(
-        polylineId: PolylineId('route'),
+        polylineId: const PolylineId('route'),
         points: polylineCoordinates,
         color: Colors.orange.shade900,
         width: 5,
       ));
       _markers.add(Marker(
-        markerId: MarkerId('end'),
+        markerId: const MarkerId('end'),
         position: polylineCoordinates.last,
-        infoWindow: InfoWindow(title: 'End'),
+        infoWindow: const InfoWindow(title: 'End'),
       ));
     });
   }
@@ -158,10 +158,10 @@ class _NavigationPageState extends State<NavigationPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Navigation'),
+        title: const Text('Navigation'),
         actions: [
           IconButton(
-            icon: Icon(Icons.stop),
+            icon: const Icon(Icons.stop),
             onPressed: _stopNavigation,
           ),
         ],
@@ -171,7 +171,7 @@ class _NavigationPageState extends State<NavigationPage> {
           Expanded(
             child: GoogleMap(
               mapType: MapType.normal,
-              initialCameraPosition: CameraPosition(
+              initialCameraPosition: const CameraPosition(
                 target: LatLng(14.599512, 120.984222),
                 zoom: 14.4746,
               ),
@@ -187,7 +187,7 @@ class _NavigationPageState extends State<NavigationPage> {
             ),
           ),
           Padding(
-            padding: EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(8.0),
             child: Text('Distance: $_distanceText, ETA: $_etaText'),
           ),
         ],
@@ -196,7 +196,7 @@ class _NavigationPageState extends State<NavigationPage> {
   }
 
   void _slantCamera() {
-    _mapController?.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
+    _mapController?.animateCamera(CameraUpdate.newCameraPosition(const CameraPosition(
       target: LatLng(14.599512, 120.984222),
       zoom: 14.4746,
       tilt: 45.0,
@@ -219,11 +219,11 @@ class _NavigationPageState extends State<NavigationPage> {
       barrierDismissible: false, // User must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Arrived"),
-          content: Text("You have arrived at your destination."),
+          title: const Text("Arrived"),
+          content: const Text("You have arrived at your destination."),
           actions: <Widget>[
             TextButton(
-              child: Text('OK'),
+              child: const Text('OK'),
               onPressed: () {
                 Navigator.of(context).pop(); // Close the dialog
                 Navigator.of(context)
