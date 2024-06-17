@@ -13,12 +13,14 @@ class MyDrawer extends StatelessWidget {
       child: Column(
         children: [
           //app logo
-          Padding(
-            padding: const EdgeInsets.only(top: 50.0),
-            child: Image.asset(
-              'lib/images/route4me logo.png',
-              height: 260,
-              width: 300,
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 50.0),
+              child: Image.asset(
+                'lib/images/route4me logo.png',
+                height: 260,
+                width: 300,
+              ),
             ),
           ),
 
@@ -51,7 +53,7 @@ class MyDrawer extends StatelessWidget {
             },
           ),
           //logout list tile
-          const Spacer(),
+          // const Spacer(),
           DrawerTile(
             text: 'L O G O U T',
             icon: Icons.logout,
