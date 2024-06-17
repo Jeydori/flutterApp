@@ -1,45 +1,39 @@
 import 'package:flutter/material.dart';
 
 class ProgressDialog extends StatelessWidget {
-  String? message;
+  final String? message;
   ProgressDialog({super.key, this.message});
 
   @override
   Widget build(BuildContext context) {
-    return Flexible(
-      child: Dialog(
-        backgroundColor: Colors.white,
-        child: Flexible(
-          child: Container(
-            margin: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
+    return Dialog(
+      backgroundColor: Colors.white,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize
+              .min, // Ensures the container sizes itself just to fit its children
+          children: [
+            CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.deepPurple),
             ),
-            child: Flexible(
-              child: Row(
-                children: [
-                  const SizedBox(
-                    width: 6,
-                  ),
-                  const CircularProgressIndicator(
-                    valueColor:
-                        AlwaysStoppedAnimation<Color>(Colors.deepPurple),
-                  ),
-                  const SizedBox(width: 26),
-                  Flexible(
-                    child: Text(
-                      message!,
-                      style: const TextStyle(
-                        color: Colors.black,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ],
+            SizedBox(width: 26),
+            Expanded(
+              child: Text(
+                message ??
+                    'Loading...', // Fallback text in case the message is null
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize:
+                      16, // Made text slightly larger for better visibility
+                ),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );

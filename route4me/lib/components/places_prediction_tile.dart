@@ -20,20 +20,19 @@ class _PlacePredictionTileState extends State<PlacePredictionTile> {
   getPlacePredictionDetails(String? placeId, context) async {
     showDialog(
         context: context,
-        builder: (BuildContext context) => Flexible(
-              child: ProgressDialog(
-                message: "Setting up Destination Location...",
-              ),
-            ));
+        builder: (BuildContext context) {
+          return ProgressDialog(message: "Setting up Destination Location...");
+        });
     String placeDirectionDetailUrl =
         "https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&key=$mapKey";
 
     var responseApi =
         await RequestAssistant.receiveRequest(placeDirectionDetailUrl);
 
-    Navigator.pop(context);
+    Navigator.pop(
+        context); // Ensure this is within the if check to avoid popping without a dialog
 
-    if (responseApi == "Error Occured. Failed. No Response.") {
+    if (responseApi == "Error Occurred. Failed. No Response.") {
       return;
     }
     if (responseApi["status"] == "OK") {
@@ -57,47 +56,55 @@ class _PlacePredictionTileState extends State<PlacePredictionTile> {
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
-      onPressed: () {
-        getPlacePredictionDetails(widget.predictedPlaces!.place_id, context);
-      },
-      style: ElevatedButton.styleFrom(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        backgroundColor: Colors.white,
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 5),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.orange, width: 1),
+        borderRadius: BorderRadius.circular(10),
       ),
-      child: Flexible(
+      child: ElevatedButton(
+        onPressed: () {
+          getPlacePredictionDetails(widget.predictedPlaces!.place_id, context);
+        },
+        style: ElevatedButton.styleFrom(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          backgroundColor: Colors.white,
+          elevation: 0, // Remove shadow for cleaner appearance
+          padding:
+              EdgeInsets.zero, // Remove default padding from ElevatedButton
+        ),
         child: Padding(
-            padding: const EdgeInsets.all(8),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.location_on_outlined,
-                  color: Colors.black,
+          padding: const EdgeInsets.all(8),
+          child: Row(
+            children: [
+              const Icon(
+                Icons.location_on_outlined,
+                color: Colors.black,
+              ),
+              const SizedBox(
+                width: 10,
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.predictedPlaces!.main_text!,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 16, color: Colors.black),
+                    ),
+                    Text(
+                      widget.predictedPlaces!.secondary_text!,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 16, color: Colors.black),
+                    ),
+                  ],
                 ),
-                const SizedBox(
-                  width: 10,
-                ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.predictedPlaces!.main_text!,
-                        overflow: TextOverflow.ellipsis,
-                        style:
-                            const TextStyle(fontSize: 16, color: Colors.black),
-                      ),
-                      Text(
-                        widget.predictedPlaces!.secondary_text!,
-                        overflow: TextOverflow.ellipsis,
-                        style:
-                            const TextStyle(fontSize: 16, color: Colors.black),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            )),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

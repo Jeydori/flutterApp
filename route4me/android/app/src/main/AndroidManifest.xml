@@ -7,7 +7,7 @@
     <application
         android:label="route4me"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/launcher_icon"
         android:allowBackup="true"
         android:enableOnBackInvokedCallback="true">
         <activity

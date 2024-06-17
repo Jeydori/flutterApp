@@ -1,5 +1,5 @@
 Map<String, Map<String, List<double>>> fareCharts = {
-  'Jeepney': {
+  'Jeepney (TPUJ)': {
     'Regular': [
       12.00,
       12.00,
@@ -105,7 +105,7 @@ Map<String, Map<String, List<double>>> fareCharts = {
       77.75
     ] // Complete as needed
   },
-  'Bus Aircon': {
+  'Bus Aircon (A-PUB)': {
     'Regular': [
       15.00,
       15.00,
@@ -211,7 +211,7 @@ Map<String, Map<String, List<double>>> fareCharts = {
       101.00
     ] // Complete as needed
   },
-  'Bus Ordinary': {
+  'Bus Ordinary (O-PUB)': {
     'Regular': [
       13.00,
       13.00,
@@ -317,7 +317,7 @@ Map<String, Map<String, List<double>>> fareCharts = {
       89.75
     ] // Complete as needed
   },
-  'E-Jeepney Aircon': {
+  'E-Jeepney Aircon (A-MPUJ)': {
     'Regular': [
       14.00,
       14.00,
@@ -423,7 +423,7 @@ Map<String, Map<String, List<double>>> fareCharts = {
       91.75
     ] // Complete as needed
   },
-  'E-Jeepney Non-Aircon': {
+  'E-Jeepney Non-Aircon (Na-MPUJ)': {
     'Regular': [
       14.00,
       14.00,

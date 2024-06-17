@@ -38,7 +38,6 @@ dependencies:
   firebase_core: ^2.27.1
   firebase_auth: ^4.17.9
   firebase_storage: ^11.7.3
-  firebase_messaging: ^14.9.0
   google_sign_in: ^6.2.1
   firebase_database: ^10.5.5
   google_maps_flutter: ^2.6.0
@@ -50,7 +49,7 @@ dependencies:
   smooth_star_rating_nsafe: ^1.0.0+1
   animated_text_kit: ^4.2.2
   provider: ^6.1.2
-  fluttertoast: ^8.2.6
+  
   
 
 
@@ -58,6 +57,13 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.13.1
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "lib/images/route4me icon lang.png"
+
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -65,7 +71,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^3.0.0
-
+#bount
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 

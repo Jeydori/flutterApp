@@ -204,6 +204,6 @@ class assistantMethods {
 
     // Debug prints to ensure correct values
     print("Fetched trafficInfo: $directionDetailsInfo");
-      return directionDetailsInfo;
+    return directionDetailsInfo;
   }
 }
