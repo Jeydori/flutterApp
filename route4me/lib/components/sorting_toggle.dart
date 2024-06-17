@@ -127,7 +127,7 @@ class _RouteSelectionSheetState extends State<RouteSelectionSheet> {
                   ),
                   child: ListTile(
                     subtitle: Text(
-                      'Distance: ${info.distance_text ?? "Not available"}, Duration: ${info.duration_text ?? "Not available"}, Fare: ₱${totalFare.toStringAsFixed(2)}',
+                      'Distance: ${info.distance_text ?? "Not available"}, Duration: ${info.duration_text}, Fare: ₱${totalFare.toStringAsFixed(2)}',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     onTap: () {

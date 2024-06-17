@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:geocoder2/geocoder2.dart';
 import 'package:provider/provider.dart';
-import 'package:route4me/assistants/assistant_methods.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -53,9 +52,6 @@ class _PrecisePickUpLocationState extends State<PrecisePickUpLocation> {
 
     newGoogleMapController!
         .animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
-
-    String humanReadableAddress = await assistantMethods
-        .searchAddressForGeographicCoordinates(userCurrentPosition!, context);
   }
 
   getAddressFromLatLng() async {

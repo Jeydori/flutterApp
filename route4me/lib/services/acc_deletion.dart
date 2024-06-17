@@ -46,7 +46,7 @@ class AccountManagement {
     if (currentUser != null) {
       try {
         final userRef = FirebaseDatabase.instance
-            .reference()
+            .ref()
             .child('Users')
             .child(currentUser.uid);
         await userRef.remove();

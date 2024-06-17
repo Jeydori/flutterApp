@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:math';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_geofire/flutter_geofire.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geolocator/geolocator.dart';
@@ -20,6 +19,8 @@ import 'package:route4me/pages/navigation_page.dart';
 import 'package:route4me/pages/search_page.dart';
 import 'package:route4me/services/precise_pickup_location.dart';
 import 'package:route4me/components/drawer.dart';
+
+import 'package:route4me/services/reviews_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -899,6 +900,9 @@ class _HomePageState extends State<HomePage> {
   void showRatingDialog(BuildContext context) {
     int rating = 0;
     TextEditingController commentController = TextEditingController();
+    FirebaseReviewsService reviewsService = FirebaseReviewsService();
+    MapEntry<String, LatLng>? nearestDriverEntry = getNearestDriverEntry();
+    String driverId = nearestDriverEntry!.key;
 
     showDialog(
       context: context,
@@ -975,10 +979,15 @@ class _HomePageState extends State<HomePage> {
                 ),
                 TextButton(
                   child: Text("Submit"),
-                  onPressed: () {
-                    print(
-                        "Rating: $rating, Comment: ${commentController.text}");
-                    Navigator.of(context).pop(); // Closes the dialog
+                  onPressed: () async {
+                    try {
+                      await reviewsService.submitReview(
+                          driverId, rating, commentController.text);
+                      Navigator.of(context).pop();
+                    } catch (e) {
+                      print("Error submitting review: $e");
+                      // Optionally show an error dialog
+                    }
                   },
                   style: TextButton.styleFrom(
                     foregroundColor:
