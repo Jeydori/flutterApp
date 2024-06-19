@@ -1148,6 +1148,7 @@ class _HomePageState extends State<HomePage> {
               GoogleMap(
                 mapType: MapType.normal,
                 myLocationEnabled: true,
+                myLocationButtonEnabled: true,
                 zoomGesturesEnabled: true,
                 zoomControlsEnabled: false,
                 initialCameraPosition: Manila,

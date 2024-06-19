@@ -5,6 +5,7 @@ import 'package:route4me/components/button.dart';
 import 'package:route4me/components/text_field.dart';
 import 'package:route4me/components/circle_tile.dart';
 import 'package:route4me/pages/forgot_page.dart';
+import 'package:route4me/pages/home_page.dart';
 import 'package:route4me/services/auth_service.dart';
 import 'package:route4me/global/global.dart';
 
@@ -17,17 +18,29 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  //text editing controllers
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  bool _isLoading = false;
 
-  //sign user in method
+  void _showLoading(bool value) {
+    if (mounted) {
+      setState(() => _isLoading = value);
+    }
+    if (_isLoading) {
+      showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => const Center(child: CircularProgressIndicator()),
+      );
+    } else {
+      if (Navigator.canPop(context)) {
+        Navigator.of(context).pop(); // This should dismiss the loading dialog
+      }
+    }
+  }
+
   void logIn() async {
-    showDialog(
-      context: context,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
-    );
-
+    _showLoading(true); // Show loading dialog
     try {
       final userCredential = await firebaseAuth.signInWithEmailAndPassword(
         email: emailController.text,
@@ -40,29 +53,36 @@ class _LoginPageState extends State<LoginPage> {
           .child(userCredential.user!.uid);
       DatabaseEvent event = await userRef.once();
 
-      if (event.snapshot.value != null) {
-        print('User data retrieved: ${event.snapshot.value}');
-      } else {
+      if (event.snapshot.value == null) {
         throw Exception('User document does not exist');
       }
 
       if (mounted) {
-        Navigator.pop(context); // Close the loading spinner safely
+        Navigator.of(context).pushReplacement(MaterialPageRoute(
+            builder: (context) => HomePage())); // Navigate to HomePage
       }
     } on FirebaseAuthException catch (e) {
-      if (mounted) {
-        Navigator.pop(
-            context); // Ensure context is still valid when dismissing the dialog
-      }
-
       if (mounted) {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            content: Text(e.message.toString()),
+            title: const Text("Login Error"),
+            content: Text(e.message ?? "Unknown error occurred during login."),
           ),
         );
       }
+    } catch (e) {
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text("Error"),
+            content: Text('An unexpected error occurred: ${e.toString()}'),
+          ),
+        );
+      }
+    } finally {
+      _showLoading(false); // Always stop the loading when process is complete
     }
   }
 
@@ -86,22 +106,18 @@ class _LoginPageState extends State<LoginPage> {
               height: 260,
               width: 300,
             ),
-
-            //emailfield
             const SizedBox(height: 1),
             textfield(
               controller: emailController,
               hintText: '   Email',
               obscureText: false,
             ),
-            //passwordfield
             const SizedBox(height: 1),
             textfield(
               controller: passwordController,
               hintText: '   Password',
               obscureText: true,
             ),
-            //forgotpassword
             const SizedBox(height: 5),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 25.0),
@@ -113,9 +129,7 @@ class _LoginPageState extends State<LoginPage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) {
-                            return const ForgotPasswordPage();
-                          },
+                          builder: (context) => const ForgotPasswordPage(),
                         ),
                       );
                     },
@@ -130,15 +144,11 @@ class _LoginPageState extends State<LoginPage> {
                 ],
               ),
             ),
-            //signIn button
             const SizedBox(height: 15),
             button(
               text: "Log In",
               onTap: logIn,
             ),
-            //divider
-            const SizedBox(height: 20),
-
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -153,13 +163,9 @@ class _LoginPageState extends State<LoginPage> {
                 CircleTile(
                     onTap: () => AuthService().signInWithGoogle(),
                     imagePath: 'lib/images/Google.png'),
-                /*SizedBox(width: 0),
-                CircleTile(onTap: () {}, imagePath: 'lib/images/Facebook.png'),*/
               ],
             ),
-
             const Divider(thickness: 2),
-
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

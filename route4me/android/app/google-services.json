@@ -15,11 +15,55 @@
       },
       "oauth_client": [
         {
-          "client_id": "315854700999-34kkrcf9rgvoau6gu33ofbudebfjv7ed.apps.googleusercontent.com",
+          "client_id": "315854700999-lka9lomitfbtn2pqif94nttums7uk5cf.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.example.route4me",
-            "certificate_hash": "8c496e95bd418e75afdebb24fc1ff87d328623c0"
+            "certificate_hash": "2bc9a39e34b2861638b9b2433604791a10905f6a"
+          }
+        },
+        {
+          "client_id": "315854700999-6m61qpfchpakmj8bltti4gt4iqkn6k0c.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCsKzXQHefWMPcBUibiEx-WAuODIjMzhDw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "315854700999-6m61qpfchpakmj8bltti4gt4iqkn6k0c.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "315854700999-2lehoj0f916jqas8i9g490keg6mm5uu4.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.route4me"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:315854700999:android:3ccae3b91c45f4360f19e2",
+        "android_client_info": {
+          "package_name": "com.example.route4me_driver"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "315854700999-qufoj7rpa1oo8fhm6br25a4i7u8lueov.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.route4me_driver",
+            "certificate_hash": "7c80f88423ad12dc69e48222bca014cddcd67540"
           }
         },
         {

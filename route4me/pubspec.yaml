@@ -62,7 +62,7 @@ dev_dependencies:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "lib/images/route4me icon lang.png"
+  image_path: "lib/images/route4me logo.png"
 
 
   # The "flutter_lints" package below contains a set of recommended lints to
