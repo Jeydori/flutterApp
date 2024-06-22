@@ -859,7 +859,13 @@ class _HomePageState extends State<HomePage> {
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10))),
                 ),
-              )
+              ),
+              Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Text(
+                    "Note: Only start Navigation when you are already in the vehicle for better navigation",
+                    style: TextStyle(fontStyle: FontStyle.italic)),
+              ),
             ],
           ),
         ),
