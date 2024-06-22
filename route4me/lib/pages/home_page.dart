@@ -467,21 +467,26 @@ class _HomePageState extends State<HomePage> {
               DirectionDetailsInfo?, String)
           showRouteInfoBottomSheet,
       String carType) {
-    showModalBottomSheet(
-      barrierColor: Colors.transparent,
+    // Create the content of the RouteSelectionSheet as a separate widget
+    Widget routeSelectionContent = RouteSelectionSheet(
+      directionsList: directionsList,
+      calculateTotalFare: calculateTotalFare,
+      drawSelectedRoute: drawSelectedRoute,
+      showRouteInfoBottomSheet: showRouteInfoBottomSheet,
+      carType: carType,
+    );
+
+    // Now use the custom bottom sheet to show this content
+    showCustomBottomSheet(
       context: context,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
-      ),
-      builder: (BuildContext ctx) {
-        return RouteSelectionSheet(
-          directionsList: directionsList,
-          calculateTotalFare: calculateTotalFare,
-          drawSelectedRoute: drawSelectedRoute,
-          showRouteInfoBottomSheet: showRouteInfoBottomSheet,
-          carType: carType, // Pass carType to the RouteSelectionSheet
-        );
-      },
+      title: "Choose a Route",
+      content: SingleChildScrollView(
+          // Use SingleChildScrollView to ensure the content fits within the available space
+          child: Container(
+              height: MediaQuery.of(context).size.height *
+                  0.8, // Set a height to ensure the content area is sufficient
+              child: routeSelectionContent)),
+      barrierColor: Colors.transparent,
     );
   }
 
@@ -536,9 +541,6 @@ class _HomePageState extends State<HomePage> {
       LatLngBounds boundsLatLng = _calculateLatLngBounds(polylineCoordinates);
       await newGoogleMapController!
           .animateCamera(CameraUpdate.newLatLngBounds(boundsLatLng, 70));
-
-      // Adding start and end circles for the route
-      _addStartAndEndCircles(polylineCoordinates);
 
       // Add steps to the map (this draws the detailed route polyline)
       _addStepsToMap(directionDetailsInfo.steps!);
@@ -642,35 +644,6 @@ class _HomePageState extends State<HomePage> {
         );
       },
     );
-  }
-
-  void _addStartAndEndCircles(List<LatLng> polylineCoordinates) {
-    if (polylineCoordinates.isNotEmpty) {
-      // Start Circle
-      Circle startCircle = Circle(
-        circleId: CircleId('start_circle'),
-        center: polylineCoordinates.first,
-        radius: 20,
-        fillColor: Colors.green,
-        strokeWidth: 1,
-        strokeColor: Colors.white,
-      );
-
-      // End Circle
-      Circle endCircle = Circle(
-        circleId: CircleId('end_circle'),
-        center: polylineCoordinates.last,
-        radius: 100,
-        fillColor: Colors.red,
-        strokeWidth: 1,
-        strokeColor: Colors.white,
-      );
-
-      setState(() {
-        circleSet.add(startCircle);
-        circleSet.add(endCircle);
-      });
-    }
   }
 
   void _addStepsToMap(List<dynamic> steps) {

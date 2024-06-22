@@ -66,36 +66,38 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         backgroundColor: Colors.orange[600],
         elevation: 0,
       ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Image.asset(
-            'lib/images/route4me logo.png',
-            height: 300,
-            width: 300,
-          ),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 25.0),
-            child: Text(
-              'Enter your email and wait for the password reset link!',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 20),
+      body: Expanded(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              'lib/images/route4me logo.png',
+              height: 300,
+              width: 300,
             ),
-          ),
-          //emailfield
-          const SizedBox(height: 10),
-          textfield(
-            controller: emailController,
-            hintText: '   Email',
-            obscureText: false,
-          ),
-          //reset pass button
-          const SizedBox(height: 10),
-          button(
-            text: "Reset Password",
-            onTap: passwordReset,
-          ),
-        ],
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 25.0),
+              child: Text(
+                'Enter your email and wait for the password reset link!',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 20),
+              ),
+            ),
+            //emailfield
+            const SizedBox(height: 10),
+            textfield(
+              controller: emailController,
+              hintText: '   Email',
+              obscureText: false,
+            ),
+            //reset pass button
+            const SizedBox(height: 10),
+            button(
+              text: "Reset Password",
+              onTap: passwordReset,
+            ),
+          ],
+        ),
       ),
     );
   }

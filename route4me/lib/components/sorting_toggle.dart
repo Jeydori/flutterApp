@@ -54,33 +54,6 @@ class _RouteSelectionSheetState extends State<RouteSelectionSheet> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Center(
-            child: Container(
-              width: 40,
-              height: 5,
-              margin: const EdgeInsets.symmetric(vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-          ),
-          Container(
-            width: double.infinity,
-            color: Colors.orange.shade600,
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: const Center(
-              child: Text(
-                "Choose a Route",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ),
           const SizedBox(height: 10),
           Center(
             child: ToggleButtons(

@@ -207,20 +207,42 @@ void _showAboutUs(BuildContext context) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
+      // Determine the available screen height and width
+      double screenWidth = MediaQuery.of(context).size.width;
+      double screenHeight = MediaQuery.of(context).size.height;
+
       return AlertDialog(
         title: const Text(
           'About Us',
           textAlign: TextAlign.center,
         ),
-        content: SingleChildScrollView(
-          child: ListBody(
-            children: <Widget>[
-              Image.asset('lib/images/route4me logo.png'),
-              const Text(
-                'Our team of developers has poured their expertise into creating these options, allowing you to customize features and optimize your workflow. We\'re constantly working to improve Route4Me. If you have any suggestions, please don\'t hesitate to send us feedback through the app.',
-                textAlign: TextAlign.center,
-              ),
-            ],
+        content: Container(
+          // Set a maximum width to ensure the dialog looks good on all devices
+          width: screenWidth * 0.9,
+          // Limit the height to prevent overflow on small devices
+          constraints: BoxConstraints(
+            maxHeight: screenHeight * 0.7,
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Use AspectRatio to maintain the image's aspect ratio
+                AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: Image.asset(
+                    'lib/images/route4me logo.png',
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: const Text(
+                    'Our team of developers has poured their expertise into creating these options, allowing you to customize features and optimize your workflow. We\'re constantly working to improve Route4Me. If you have any suggestions, please don\'t hesitate to send us feedback through the app.',
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
         shape: RoundedRectangleBorder(
@@ -233,9 +255,7 @@ void _showAboutUs(BuildContext context) {
               'Close',
               style: TextStyle(color: Colors.orange),
             ),
-            onPressed: () {
-              Navigator.of(context).pop(); // Close the dialog
-            },
+            onPressed: () => Navigator.of(context).pop(),
           ),
         ],
       );
