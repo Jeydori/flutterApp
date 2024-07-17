@@ -32,6 +32,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final Completer<GoogleMapController> _controllerGoogleMap = Completer();
   GoogleMapController? newGoogleMapController;
+  LatLng? destinationPosition; // Now accessible across the class
 
   static const CameraPosition Manila = CameraPosition(
     target: LatLng(14.599512, 120.984222),
@@ -750,23 +751,21 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               Align(
-                alignment: Alignment.center,
-                child: ElevatedButton(
-                  onPressed: () {
-                    print(
-                        "Starting navigation for: ${directionDetailsInfo.distance_text}");
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      startNavigation(context, directionDetailsInfo);
-                    });
-                  },
-                  child: Text("Start Navigation",
-                      style: TextStyle(color: Colors.black)),
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10))),
-                ),
-              ),
+                  alignment: Alignment.center,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      print(
+                          "Starting navigation for: ${directionDetailsInfo.distance_text}");
+                      startNavigation(
+                          context, directionDetailsInfo, destinationPosition!);
+                    },
+                    child: Text("Start Navigation",
+                        style: TextStyle(color: Colors.black)),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10))),
+                  )),
               Padding(
                 padding: const EdgeInsets.all(10.0),
                 child: Text(
@@ -796,12 +795,19 @@ class _HomePageState extends State<HomePage> {
     return totalFare;
   }
 
-  Future<void> startNavigation(
-      BuildContext context, DirectionDetailsInfo directionDetails) async {
-    final result = await navigatorKey.currentState?.push(
+  Future<void> startNavigation(BuildContext context,
+      DirectionDetailsInfo directionDetails, LatLng destinationPosition) async {
+    print(
+        "Navigating to: Latitude = ${destinationPosition.latitude}, Longitude = ${destinationPosition.longitude}");
+
+    final result = await Navigator.push(
+      context,
       MaterialPageRoute(
-        builder: (context) =>
-            NavigationPage(directionDetailsInfo: directionDetails),
+        builder: (context) => NavigationPage(
+            directionDetailsInfo: directionDetails,
+            destinationPosition:
+                destinationPosition // Ensure this parameter is handled in NavigationPage
+            ),
       ),
     );
 
@@ -973,6 +979,9 @@ class _HomePageState extends State<HomePage> {
         Provider.of<appInfo>(context, listen: false).userPickUpLocation;
     var destinationPosition =
         Provider.of<appInfo>(context, listen: false).userDestinationLocation;
+
+    this.destinationPosition = LatLng(destinationPosition!.locationLatitude!,
+        destinationPosition.locationLongitude!);
 
     MapEntry<String, LatLng>? nearestDriverEntry = getNearestDriverEntry();
     if (nearestDriverEntry == null) {
