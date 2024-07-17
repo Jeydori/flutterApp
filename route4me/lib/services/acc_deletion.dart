@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:route4me/pages/login_register_page.dart';
 
 class AccountManagement {
   static void showDeleteConfirmation(BuildContext context) {
@@ -52,6 +54,8 @@ class AccountManagement {
         await userRef.remove();
         await currentUser.delete();
         await firebaseAuth.signOut();
+        GoogleSignIn().signOut();
+        GoogleSignIn().disconnect();
 
         Navigator.of(context).popUntil((route) => route.isFirst);
         showDialog(
@@ -75,6 +79,11 @@ class AccountManagement {
                   child: const Text('OK'),
                   onPressed: () {
                     Navigator.of(context).pop(); // Close the success dialog
+                    Navigator.of(context).popUntil((route) => route.isFirst);
+                    Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const LoginOrRegisterPage()));
                   },
                 ),
               ],

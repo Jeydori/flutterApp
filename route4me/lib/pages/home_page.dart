@@ -67,19 +67,35 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     checkIfLocationPermissionAllowed();
-    addCustomIcon();
   }
 
-  void addCustomIcon() {
-    BitmapDescriptor.fromAssetImage(
-            ImageConfiguration(size: Size(1, 1)), 'lib/images/jeep.png')
-        .then((icon) {
-      setState(() {
-        activeNearbyIcon = icon;
-      });
-    }).catchError((e) {
-      print("Failed to load icon: $e");
-    });
+  Future<BitmapDescriptor> getVehicleIcon(String vehicleType) async {
+    print('Vehicle type: $vehicleType'); // Debugging line
+    String iconName;
+    switch (vehicleType) {
+      case 'Bus Ordinary (O-PUB)':
+        iconName = 'lib/images/bus.png';
+        break;
+      case 'Bus Aircon (A-PUB)':
+        iconName = 'lib/images/bus.png';
+        break;
+      case 'E-Jeepney Aircon (A-MPUJ)':
+        iconName = 'lib/images/e-jeep.png';
+        break;
+      case 'E-Jeepney Non-Aircon (Na-MPUJ)':
+        iconName = 'lib/images/e-jeep.png';
+        break;
+      case 'Jeepney (TPUJ)':
+        iconName = 'lib/images/jeep.png';
+        break;
+      default:
+        iconName = 'lib/images/jeep.png'; // Default to jeep icon
+    }
+
+    print('Icon name: $iconName'); // Debugging line
+
+    return BitmapDescriptor.fromAssetImage(
+        ImageConfiguration(size: Size(1, 1)), iconName);
   }
 
   void checkIfLocationPermissionAllowed() async {
@@ -189,76 +205,19 @@ class _HomePageState extends State<HomePage> {
       // Fetch driver details from Firebase
       var driverDetails = await getDriverDetails(key);
 
+      // Get the appropriate icon based on the vehicle type
+      var vehicleIcon = await getVehicleIcon(driverDetails.carType);
+
       Marker marker = Marker(
         markerId: MarkerId(key),
         position: driverPosition,
-        icon: activeNearbyIcon,
+        icon: vehicleIcon, // Use the icon based on vehicle type
         onTap: () {
           showCustomBottomSheet(
             barrierColor: Colors.transparent,
             context: context,
             title: "Driver Information",
-            content: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: EdgeInsets.all(10),
-                    margin: EdgeInsets.only(
-                        bottom: 8), // Adds spacing between containers
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: Colors.orange, width: 2),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      "Name: ${driverDetails.firstName} ${driverDetails.lastName}",
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  Container(
-                    padding: EdgeInsets.all(10),
-                    margin: EdgeInsets.only(bottom: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: Colors.orange, width: 2),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      "Contact email: ${driverDetails.email}",
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  Container(
-                    padding: EdgeInsets.all(10),
-                    margin: EdgeInsets.only(bottom: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: Colors.orange, width: 2),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      "PUV: ${driverDetails.carType}",
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  Container(
-                    padding: EdgeInsets.all(10),
-                    margin: EdgeInsets.only(bottom: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: Colors.orange, width: 2),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      "Plate Number: ${driverDetails.carPlate}",
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            content: driverInfoContent(driverDetails),
           );
         },
       );
@@ -270,20 +229,6 @@ class _HomePageState extends State<HomePage> {
     } else {
       print(
           "Error: Missing data in map['key'], map['latitude'], or map['longitude']");
-    }
-  }
-
-  void handleDriverExited(Map<dynamic, dynamic> map) {
-    var key = map["key"];
-    print("Driver exited: key=$key");
-
-    if (key != null) {
-      setState(() {
-        markerSet.removeWhere((marker) => marker.markerId.value == key);
-        activeDrivers.remove(key); // Remove from active drivers map
-      });
-    } else {
-      print("Error: Missing data in map['key']");
     }
   }
 
@@ -299,76 +244,19 @@ class _HomePageState extends State<HomePage> {
       // Fetch driver details from Firebase
       var driverDetails = await getDriverDetails(key);
 
+      // Get the appropriate icon based on the vehicle type
+      var vehicleIcon = await getVehicleIcon(driverDetails.carType);
+
       Marker marker = Marker(
         markerId: MarkerId(key),
         position: driverPosition,
-        icon: activeNearbyIcon,
+        icon: vehicleIcon, // Use the icon based on vehicle type
         onTap: () {
           showCustomBottomSheet(
             barrierColor: Colors.transparent,
             context: context,
             title: "Driver Information",
-            content: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: EdgeInsets.all(10),
-                    margin: EdgeInsets.only(
-                        bottom: 8), // Adds spacing between containers
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: Colors.orange, width: 2),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      "Name: ${driverDetails.firstName} ${driverDetails.lastName}",
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  Container(
-                    padding: EdgeInsets.all(10),
-                    margin: EdgeInsets.only(bottom: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: Colors.orange, width: 2),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      "Contact email: ${driverDetails.email}",
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  Container(
-                    padding: EdgeInsets.all(10),
-                    margin: EdgeInsets.only(bottom: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: Colors.orange, width: 2),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      "PUV: ${driverDetails.carType}",
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  Container(
-                    padding: EdgeInsets.all(10),
-                    margin: EdgeInsets.only(bottom: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: Colors.orange, width: 2),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      "Plate Number: ${driverDetails.carPlate}",
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            content: driverInfoContent(driverDetails),
           );
         },
       );
@@ -382,6 +270,54 @@ class _HomePageState extends State<HomePage> {
     } else {
       print(
           "Error: Missing data in map['key'], map['latitude'], or map['longitude']");
+    }
+  }
+
+// Helper function to create the content widget for the custom bottom sheet
+  Widget driverInfoContent(DriverDetails driverDetails) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          driverInfoItem(
+              "Name: ${driverDetails.firstName} ${driverDetails.lastName}"),
+          driverInfoItem("Contact email: ${driverDetails.email}"),
+          driverInfoItem("PUV: ${driverDetails.carType}"),
+          driverInfoItem("Plate Number: ${driverDetails.carPlate}"),
+        ],
+      ),
+    );
+  }
+
+// Helper function to create individual items for the custom bottom sheet
+  Widget driverInfoItem(String text) {
+    return Container(
+      padding: EdgeInsets.all(10),
+      margin: EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: Colors.orange, width: 2),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
+  void handleDriverExited(Map<dynamic, dynamic> map) {
+    var key = map["key"];
+    print("Driver exited: key=$key");
+
+    if (key != null) {
+      setState(() {
+        markerSet.removeWhere((marker) => marker.markerId.value == key);
+        activeDrivers.remove(key); // Remove from active drivers map
+      });
+    } else {
+      print("Error: Missing data in map['key']");
     }
   }
 
@@ -560,16 +496,14 @@ class _HomePageState extends State<HomePage> {
 
         // Debug print to check trafficInfo
         print("Traffic Info Duration Text: ${trafficInfo.duration_text}");
-        if (trafficInfo != null) {
-          Future.delayed(Duration(milliseconds: 300), () {
-            if (mounted) {
-              // Ensure the widget is still mounted
-              drawDriverToDeparturePolyline(
-                  nearestDriverPosition, firstDeparturePosition, trafficInfo!);
-              showPUVArrivalDialog(trafficInfo.duration_text);
-            }
-          });
-        }
+        Future.delayed(Duration(milliseconds: 300), () {
+          if (mounted) {
+            // Ensure the widget is still mounted
+            drawDriverToDeparturePolyline(
+                nearestDriverPosition, firstDeparturePosition, trafficInfo!);
+            showPUVArrivalDialog(trafficInfo.duration_text);
+          }
+        });
       }
 
       // Use mounted check before updating UI

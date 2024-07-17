@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:route4me/models/user_model.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:route4me/assistants/assistant_methods.dart';
+import 'package:route4me/global/global.dart';
+import 'package:route4me/models/user_model.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -16,28 +20,27 @@ class _ProfilePageState extends State<ProfilePage> {
   final emailController = TextEditingController();
 
   UserModel? currentUser;
+  String? profileImageUrl;
 
   @override
   void initState() {
     super.initState();
-    // Fetch current user's info when the profile page is initialized
     fetchCurrentUser();
   }
 
   Future<void> fetchCurrentUser() async {
     try {
       UserModel user = await assistantMethods.readCurrentOnlineUserInfo();
-      // Set the initial values for all fields
       setState(() {
         currentUser = user;
         firstNameController.text = user.firstName;
         lastNameController.text = user.lastName;
         ageController.text = user.age.toString();
         emailController.text = user.email;
+        profileImageUrl = user.profileImageUrl;
       });
     } catch (error) {
       print("Failed to fetch user info: $error");
-      // Handle error
     }
   }
 
@@ -49,10 +52,10 @@ class _ProfilePageState extends State<ProfilePage> {
           lastName: lastNameController.text,
           age: int.tryParse(ageController.text) ?? 0,
           email: emailController.text,
+          profileImageUrl: profileImageUrl,
           uid: currentUser!.uid,
         );
         await assistantMethods.updateUserInfo(updatedUserModel);
-        // Update local user model with the new information
         setState(() {
           currentUser = updatedUserModel;
         });
@@ -60,7 +63,6 @@ class _ProfilePageState extends State<ProfilePage> {
       }
     } catch (error) {
       print("Failed to update user information: $error");
-      // Handle error
     }
   }
 
@@ -118,6 +120,42 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      final imageUrl = await _uploadImage(File(pickedFile.path));
+      setState(() {
+        profileImageUrl = imageUrl;
+      });
+      updateUserInfo();
+    }
+  }
+
+  Future<String?> _uploadImage(File image) async {
+    try {
+      final currentUser = firebaseAuth.currentUser;
+      if (currentUser == null) {
+        throw Exception('No authenticated user');
+      }
+
+      final userId = currentUser.uid;
+      final storageRef = FirebaseStorage.instance
+          .ref()
+          .child('user_images')
+          .child(userId)
+          .child('${DateTime.now().millisecondsSinceEpoch}.jpg');
+
+      final uploadTask = storageRef.putFile(image);
+      final snapshot = await uploadTask.whenComplete(() => null);
+      final downloadUrl = await snapshot.ref.getDownloadURL();
+      return downloadUrl;
+    } catch (e) {
+      print("Failed to upload image: $e");
+      return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -137,13 +175,39 @@ class _ProfilePageState extends State<ProfilePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.orange[600],
-                    shape: BoxShape.circle,
+                GestureDetector(
+                  onTap: _pickImage,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Container(
+                        width: 125,
+                        height: 125,
+                        decoration: BoxDecoration(
+                          color: Colors.orange,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      ClipOval(
+                        child: Container(
+                          width: 120,
+                          height: 120,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            image: profileImageUrl != null
+                                ? DecorationImage(
+                                    image: NetworkImage(profileImageUrl!),
+                                    fit: BoxFit.cover,
+                                  )
+                                : null,
+                          ),
+                          child: profileImageUrl == null
+                              ? const Icon(Icons.person_outline, size: 80)
+                              : null,
+                        ),
+                      ),
+                    ],
                   ),
-                  child: const Icon(Icons.person_outline, size: 80),
                 ),
                 const SizedBox(height: 20),
                 TextFormField(

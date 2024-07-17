@@ -1,6 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:route4me/components/drawer_tile.dart';
+import 'package:route4me/pages/login_register_page.dart';
 import 'package:route4me/pages/settings_page.dart';
 
 class MyDrawer extends StatelessWidget {
@@ -37,6 +39,13 @@ class MyDrawer extends StatelessWidget {
 
     if (confirm) {
       FirebaseAuth.instance.signOut();
+      GoogleSignIn().signOut();
+      GoogleSignIn().disconnect();
+
+      Navigator.of(context).pop(); // Close the success dialog
+      Navigator.of(context).popUntil((route) => route.isFirst);
+      Navigator.pushReplacement(context,
+          MaterialPageRoute(builder: (context) => const LoginOrRegisterPage()));
     }
   }
 

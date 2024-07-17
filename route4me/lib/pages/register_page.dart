@@ -1,10 +1,12 @@
+import 'dart:async';
+
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:route4me/components/button.dart';
 import 'package:route4me/components/text_field.dart';
 import 'package:route4me/components/circle_tile.dart';
-import 'package:route4me/global/global.dart';
+import 'package:route4me/pages/home_page.dart';
 import 'package:route4me/services/auth_service.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -24,6 +26,8 @@ class _RegisterPageState extends State<RegisterPage> {
   final lastNameController = TextEditingController();
   final ageController = TextEditingController();
 
+  Timer? _timer;
+
   @override
   void dispose() {
     emailController.dispose();
@@ -36,76 +40,142 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   //sign user up method
-  void signUp() async {
-    try {
-      Future<void> addUserDetails(String firstName, String lastName, int age,
-          String email, String uid) async {
-        DatabaseReference userRef =
-            FirebaseDatabase.instance.ref().child("Users").child(uid);
-        await userRef.set({
-          'First Name': firstName,
-          'Last Name': lastName,
-          'Age': age,
-          'Email': email,
-          'Uid': uid,
-        }).then((_) {
-          print("User added with ID: $uid");
-        }).catchError((error) {
-          print("Failed to add user: $error");
-        });
-      }
-
-      //check if password is confirmed
-      if (passwordController.text == confirmPasswordController.text) {
-        //create user
-        UserCredential userCredential =
-            await firebaseAuth.createUserWithEmailAndPassword(
-                email: emailController.text, password: passwordController.text);
-
-        // Get the UID of the newly created user
-        String uid = userCredential.user!.uid;
-
-        //add user details
-        addUserDetails(
-          firstNameController.text.trim(),
-          lastNameController.text.trim(),
-          int.parse(ageController.text.trim()),
-          emailController.text.trim(),
-          uid,
-        );
-        //if no exception were thrown
-        showDialog(
+  void signUp() {
+    if (passwordController.text == confirmPasswordController.text) {
+      // Use AuthService to register the user
+      var authService = AuthService();
+      authService
+          .registerWithEmailPassword(
+        emailController.text.trim(),
+        passwordController.text.trim(),
+      )
+          .then((user) {
+        if (user != null) {
+          // User has been created and verification email sent
+          addUserDetails(
+            firstNameController.text.trim(),
+            lastNameController.text.trim(),
+            int.parse(ageController.text.trim()),
+            emailController.text.trim(),
+            user.uid,
+          ).then((_) {
+            // Show a dialog asking the user to verify their email
+            showDialog(
+              context: context,
+              barrierDismissible: false, // Prevent dialog from being dismissed
+              builder: (context) {
+                _startEmailVerificationCheck();
+                return AlertDialog(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    side: const BorderSide(color: Colors.orange, width: 2),
+                  ),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        'Registration successful! Please verify your email and wait a moment.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.black),
+                      ),
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: () {
+                          user.sendEmailVerification().then((_) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text("Verification email sent")),
+                            );
+                          }).catchError((error) {
+                            print("Failed to send verification email: $error");
+                          });
+                        },
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor: Colors.black,
+                          backgroundColor: Colors.white,
+                          side:
+                              const BorderSide(color: Colors.orange, width: 2),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: const Text("Resend Verification Email"),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          }).catchError((error) {
+            print("Failed to add user details: $error");
+          });
+        } else {
+          // Show an error message if registration failed
+          showDialog(
             context: context,
             builder: (context) {
               return const AlertDialog(
                 content: Text(
-                    textAlign: TextAlign.center, 'You have been registered!'),
+                  textAlign: TextAlign.center,
+                  'Failed to register. Please try again.',
+                ),
               );
-            });
-      } else {
-        //show error message that passwords don't match
-        showDialog(
-            context: context,
-            builder: (context) {
-              return const AlertDialog(
-                content:
-                    Text(textAlign: TextAlign.center, 'Password don\'t match!'),
-              );
-            });
-      }
-    } on FirebaseAuthException catch (e) {
-      // show the error code
+            },
+          );
+        }
+      }).catchError((error) {
+        print("Registration failed: $error");
+        // Handle registration error
+      });
+    } else {
+      // Show error if passwords do not match
       showDialog(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              content: Text(
-                textAlign: TextAlign.center,
-                e.message.toString(),
-              ),
-            );
-          });
+        context: context,
+        builder: (context) {
+          return const AlertDialog(
+            content: Text(
+              textAlign: TextAlign.center,
+              'Passwords do not match!',
+            ),
+          );
+        },
+      );
     }
+  }
+
+  Future<void> addUserDetails(String firstName, String lastName, int age,
+      String email, String uid) async {
+    DatabaseReference userRef =
+        FirebaseDatabase.instance.ref().child("Users").child(uid);
+    await userRef.set({
+      'First Name': firstName,
+      'Last Name': lastName,
+      'Age': age,
+      'Email': email,
+      'Uid': uid,
+    }).then((_) {
+      print("User added with ID: $uid");
+    }).catchError((error) {
+      print("Failed to add user: $error");
+    });
+  }
+
+  void _startEmailVerificationCheck() {
+    _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      FirebaseAuth.instance.currentUser?.reload().then((_) {
+        User? user = FirebaseAuth.instance.currentUser;
+        if (user != null && user.emailVerified) {
+          _timer?.cancel();
+          Navigator.of(context).pop(); // Close the dialog
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const HomePage()),
+          );
+        }
+      }).catchError((error) {
+        print("Error reloading user: $error");
+      });
+    });
   }
 
   @override
